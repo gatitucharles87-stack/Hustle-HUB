@@ -22,6 +22,7 @@ import {
   Gift,
   Award,
   DollarSign,
+  CalendarCheck,
 } from 'lucide-react';
 import { Logo } from '../logo';
 import Link from 'next/link';
@@ -36,6 +37,7 @@ const employerMenuItems = [
 const freelancerMenuItems = [
   { href: '/dashboard/freelancer', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/jobs', label: 'Find Jobs', icon: Briefcase },
+  { href: '/my-gigs', label: 'My Gigs', icon: CalendarCheck },
   { href: '/skill-barter', label: 'Skill Barter', icon: Repeat },
   { href: '/referrals', label: 'Referrals', icon: Gift },
   { href: '/badges', label: 'My Badges', icon: Award },
