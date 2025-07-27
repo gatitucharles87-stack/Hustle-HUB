@@ -51,8 +51,8 @@ export default function MyGigsPage() {
             </p>
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 items-start">
-            <div className="xl:col-span-2">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+            <div className="lg:col-span-1">
                 <Card>
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2"><Briefcase /> Active Applications</CardTitle>
@@ -88,7 +88,7 @@ export default function MyGigsPage() {
                 </Card>
             </div>
 
-            <div className="xl:col-span-1">
+            <div className="lg:col-span-1">
                 <Card className="h-full">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2"><Calendar /> Upcoming Gigs</CardTitle>

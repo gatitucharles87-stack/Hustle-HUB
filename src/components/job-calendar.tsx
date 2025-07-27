@@ -22,12 +22,12 @@ export function JobCalendar({ events }: JobCalendarProps) {
   const selectedEvents = events.filter(e => e.date.toDateString() === date?.toDateString());
 
   return (
-     <div className="space-y-4">
+     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
         <Calendar
             mode="single"
             selected={date}
             onSelect={setDate}
-            className="rounded-md border"
+            className="rounded-md border self-start"
             modifiers={{
                 events: events.map(e => e.date)
             }}
@@ -55,7 +55,7 @@ export function JobCalendar({ events }: JobCalendarProps) {
                          </Card>
                     ))
                 ) : (
-                    <div className="text-center py-8 px-4 bg-muted/50 rounded-lg">
+                    <div className="text-center py-8 px-4 bg-muted/50 rounded-lg h-full flex items-center justify-center">
                         <p className="text-sm text-muted-foreground">No gigs scheduled for this day.</p>
                     </div>
                 )}
