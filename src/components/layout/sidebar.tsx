@@ -25,12 +25,14 @@ import {
   CalendarCheck,
   Info,
   Star,
+  UserSearch,
 } from 'lucide-react';
 import { Logo } from '../logo';
 import Link from 'next/link';
 
 const employerMenuItems = [
   { href: '/dashboard/employer', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/hire', label: 'Hire Freelancers', icon: UserSearch },
   { href: '/dashboard/post-job', label: 'Post a Job', icon: PenSquare },
   { href: '/map', label: 'Map View', icon: Map },
   { href: '/loyalty', label: 'Loyalty', icon: Star },
@@ -50,7 +52,7 @@ const freelancerMenuItems = [
 export default function AppSidebar() {
   const pathname = usePathname();
   // In a real app, this would come from user authentication state
-  const userRole = pathname.includes('/employer') || pathname.includes('/post-job') || pathname.includes('/loyalty') ? 'employer' : 'freelancer';
+  const userRole = pathname.includes('/employer') || pathname.includes('/post-job') || pathname.includes('/loyalty') || pathname.includes('/hire') ? 'employer' : 'freelancer';
 
   const menuItems = userRole === 'employer' ? employerMenuItems : freelancerMenuItems;
 
