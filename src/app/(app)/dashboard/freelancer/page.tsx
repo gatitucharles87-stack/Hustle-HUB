@@ -1,7 +1,8 @@
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Award, BarChart2, Briefcase, FileText, Lightbulb, UserCheck } from "lucide-react";
+import { Award, BarChart2, Briefcase, FileText, Gift, Lightbulb, UserCheck } from "lucide-react";
+import Link from "next/link";
 
 export default function FreelancerDashboardPage() {
   return (
@@ -95,18 +96,15 @@ export default function FreelancerDashboardPage() {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle className="font-headline">Loyalty & Referrals</CardTitle>
-            <CardDescription>Earn points by referring others.</CardDescription>
+              <CardTitle className="font-headline flex items-center gap-2"><Gift /> Referrals & Loyalty</CardTitle>
+              <CardDescription>Earn loyalty points by inviting friends to the platform.</CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-col gap-4">
-            <div className="flex items-center space-x-2">
-              <p className="text-sm text-muted-foreground">Your referral link:</p>
-              <div className="flex-1 p-2 border rounded-md bg-muted text-sm">
-                <code>https://hustlehub.app/ref/freelancer456</code>
-              </div>
-              <Button variant="outline">Copy</Button>
-            </div>
-            <p className="text-sm">You have <strong>1,500</strong> loyalty points available to redeem.</p>
+          <CardContent>
+              <Button asChild>
+                  <Link href="/referrals">
+                      Go to Referrals Page
+                  </Link>
+              </Button>
           </CardContent>
         </Card>
       </div>

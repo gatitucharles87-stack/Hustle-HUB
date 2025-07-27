@@ -20,6 +20,7 @@ import {
   LogOut,
   Users,
   Repeat,
+  Gift,
 } from 'lucide-react';
 import { Logo } from '../logo';
 import Link from 'next/link';
@@ -28,13 +29,14 @@ const employerMenuItems = [
   { href: '/dashboard/employer', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/dashboard/post-job', label: 'Post a Job', icon: PenSquare },
   { href: '/map', label: 'Map View', icon: Map },
+  { href: '/referrals', label: 'Referrals', icon: Gift },
 ];
 
 const freelancerMenuItems = [
   { href: '/dashboard/freelancer', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/jobs', label: 'Find Jobs', icon: Briefcase },
   { href: '/skill-barter', label: 'Skill Barter', icon: Repeat },
-  { href: '/loyalty', label: 'Loyalty Program', icon: Award },
+  { href: '/referrals', label: 'Referrals', icon: Gift },
 ];
 
 

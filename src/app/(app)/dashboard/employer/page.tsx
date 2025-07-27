@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { PenSquare, Users, Briefcase, CheckCircle, Map, Star } from "lucide-react";
+import { PenSquare, Users, Briefcase, CheckCircle, Map, Star, Gift } from "lucide-react";
 import Link from "next/link";
 import {
   Table,
@@ -137,18 +137,15 @@ export default function EmployerDashboardPage() {
           </Card>
           <Card>
             <CardHeader>
-              <CardTitle className="font-headline">Refer a Friend</CardTitle>
-              <CardDescription>Invite other employers and earn loyalty points!</CardDescription>
+                <CardTitle className="font-headline flex items-center gap-2"><Gift /> Referrals & Loyalty</CardTitle>
+                <CardDescription>Earn loyalty points by referring new users to the platform.</CardDescription>
             </CardHeader>
-            <CardContent className="flex flex-col gap-4">
-              <div className="flex items-center space-x-2">
-                <p className="text-sm text-muted-foreground">Your referral link:</p>
-                <div className="flex-1 p-2 border rounded-md bg-muted text-sm">
-                  <code>https://hustlehub.app/ref/employer123</code>
-                </div>
-                <Button variant="outline">Copy</Button>
-              </div>
-              <p className="text-sm">You've referred <strong>3</strong> friends and earned <strong>300</strong> loyalty points.</p>
+            <CardContent>
+                <Button asChild>
+                    <Link href="/referrals">
+                        Go to Referrals Page
+                    </Link>
+                </Button>
             </CardContent>
           </Card>
         </div>
