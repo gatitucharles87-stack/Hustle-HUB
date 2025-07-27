@@ -70,7 +70,9 @@ export default function EmployerDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">450</div>
-            <p className="text-xs text-muted-foreground">Earned from referrals & activity</p>
+             <Button variant="link" className="p-0 h-auto text-xs text-muted-foreground" asChild>
+                <Link href="/loyalty">View Details</Link>
+             </Button>
           </CardContent>
         </Card>
       </div>
@@ -125,7 +127,7 @@ export default function EmployerDashboardPage() {
           <Card>
             <CardHeader>
                 <CardTitle className="font-headline flex items-center gap-2"><Map /> Find Freelancers Nearby</CardTitle>
-                <CardDescription>Use our map to discover and hire skilled freelancers in your area.</CardDescription>
+                <CardDescription>Use our map to discover and hire skilled freelancers in your area for immediate services.</CardDescription>
             </CardHeader>
             <CardContent>
                 <Button asChild>
@@ -142,8 +144,8 @@ export default function EmployerDashboardPage() {
             </CardHeader>
             <CardContent>
                 <Button asChild>
-                    <Link href="/referrals">
-                        Go to Referrals Page
+                    <Link href="/loyalty">
+                        Go to Loyalty Page
                     </Link>
                 </Button>
             </CardContent>
