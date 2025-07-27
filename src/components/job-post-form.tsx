@@ -1,11 +1,11 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useEffect } from 'react';
 import { useFormStatus } from 'react-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { generateJobPostAction, type FormState } from '@/lib/actions';
+import { generateJobPostAction, type JobPostFormState } from '@/lib/actions';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -25,7 +25,6 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Wand2, Loader2, Send } from 'lucide-react';
-import { useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
 const formSchema = z.object({
@@ -55,7 +54,7 @@ function SubmitButton() {
 
 export function JobPostForm() {
   const { toast } = useToast();
-  const initialState: FormState = { message: '', data: null };
+  const initialState: JobPostFormState = { message: '', data: null };
   const [state, formAction] = useActionState(generateJobPostAction, initialState);
 
   const form = useForm<FormData>({

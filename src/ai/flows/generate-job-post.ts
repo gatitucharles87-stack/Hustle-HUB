@@ -37,14 +37,14 @@ const prompt = ai.definePrompt({
   name: 'generateJobPostPrompt',
   input: {schema: GenerateJobPostInputSchema},
   output: {schema: GenerateJobPostOutputSchema},
-  prompt: `You are an expert job post writer. Based on the provided information, generate a compelling job post title and description.
+  prompt: `You are an expert job post writer. Based on the provided information, generate a compelling job post title and a detailed description.
 
 Skills: {{{skills}}}
 Experience: {{{experience}}}
 Location: {{{location}}}
 Category: {{{category}}}
 
-Title:`, // The title will be generated and then the description will be generated based on the generated title.
+Please generate a title and a full job description based on these details.`,
 });
 
 const generateJobPostFlow = ai.defineFlow(

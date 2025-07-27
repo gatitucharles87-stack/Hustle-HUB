@@ -14,7 +14,6 @@ import {
   LayoutDashboard,
   Briefcase,
   Map,
-  Award,
   PenSquare,
   Settings,
   LogOut,

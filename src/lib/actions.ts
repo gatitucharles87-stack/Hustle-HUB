@@ -4,16 +4,25 @@ import {
   generateJobPost,
   type GenerateJobPostOutput,
 } from '@/ai/flows/generate-job-post';
+import {
+  generateBarterPost,
+  type GenerateBarterPostOutput,
+} from '@/ai/flows/generate-barter-post';
 import { z } from 'zod';
 
-const formSchema = z.object({
+const jobPostFormSchema = z.object({
   skills: z.string().min(1, 'Skills are required.'),
   experience: z.string().min(1, 'Experience level is required.'),
   location: z.string().min(1, 'Location is required.'),
   category: z.string().min(1, 'Category is required.'),
 });
 
-export type FormState = {
+const barterPostFormSchema = z.object({
+  skillsToOffer: z.string().min(1, 'Skills to offer are required.'),
+  skillsToReceive: z.string().min(1, 'Skills to receive are required.'),
+});
+
+export type JobPostFormState = {
   message: string;
   errors?: {
     skills?: string[];
@@ -24,10 +33,19 @@ export type FormState = {
   data: GenerateJobPostOutput | null;
 };
 
+export type BarterPostFormState = {
+  message: string;
+  errors?: {
+    skillsToOffer?: string[];
+    skillsToReceive?: string[];
+  } | null;
+  data: GenerateBarterPostOutput | null;
+};
+
 export async function generateJobPostAction(
-  prevState: FormState,
+  prevState: JobPostFormState,
   formData: FormData
-): Promise<FormState> {
+): Promise<JobPostFormState> {
   const rawFormData = {
     skills: formData.get('skills'),
     experience: formData.get('experience'),
@@ -35,7 +53,7 @@ export async function generateJobPostAction(
     category: formData.get('category'),
   };
 
-  const validatedFields = formSchema.safeParse(rawFormData);
+  const validatedFields = jobPostFormSchema.safeParse(rawFormData);
 
   if (!validatedFields.success) {
     return {
@@ -49,6 +67,42 @@ export async function generateJobPostAction(
     const result = await generateJobPost(validatedFields.data);
     return {
       message: 'Job post generated successfully.',
+      errors: null,
+      data: result,
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      message: 'An unexpected error occurred. Please try again.',
+      errors: null,
+      data: null,
+    };
+  }
+}
+
+export async function generateBarterPostAction(
+  prevState: BarterPostFormState,
+  formData: FormData
+): Promise<BarterPostFormState> {
+  const rawFormData = {
+    skillsToOffer: formData.get('skillsToOffer'),
+    skillsToReceive: formData.get('skillsToReceive'),
+  };
+
+  const validatedFields = barterPostFormSchema.safeParse(rawFormData);
+
+  if (!validatedFields.success) {
+    return {
+      message: 'Invalid form data.',
+      errors: validatedFields.error.flatten().fieldErrors,
+      data: null,
+    };
+  }
+
+  try {
+    const result = await generateBarterPost(validatedFields.data);
+    return {
+      message: 'Barter post generated successfully.',
       errors: null,
       data: result,
     };

@@ -2,7 +2,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Repeat, Search } from "lucide-react";
+import { Repeat, Search, Wand2 } from "lucide-react";
+import { BarterPostDialog } from "@/components/barter-post-dialog";
 
 const barterListings = [
   {
@@ -48,7 +49,12 @@ export default function SkillBarterPage() {
             <div className="flex items-center gap-4">
                 <Input placeholder="Search for skills you need or can offer..." className="flex-1" />
                 <Button><Search className="mr-2"/>Search</Button>
-                <Button variant="outline">Post a New Barter Offer</Button>
+                <BarterPostDialog>
+                  <Button variant="outline">
+                    <Wand2 className="mr-2" />
+                    Post a New Barter Offer
+                  </Button>
+                </BarterPostDialog>
             </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {barterListings.map((listing, index) => (
