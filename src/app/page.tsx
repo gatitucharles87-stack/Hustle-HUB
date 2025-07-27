@@ -77,8 +77,19 @@ export default function HomePage() {
           </div>
         </section>
       </main>
-      <footer className="flex w-full shrink-0 flex-col items-center justify-center gap-2 border-t px-4 py-6 sm:flex-row md:px-6">
+      <footer className="flex w-full shrink-0 flex-col items-center justify-between gap-2 border-t px-4 py-6 sm:flex-row md:px-6">
         <p className="text-xs text-muted-foreground">&copy; 2024 HustleHub. All rights reserved.</p>
+        <nav className="sm:ml-auto flex gap-4 sm:gap-6">
+            <Link href="/about" className="text-xs hover:underline underline-offset-4">
+                About Us
+            </Link>
+             <Link href="#" className="text-xs hover:underline underline-offset-4">
+                Terms of Service
+            </Link>
+             <Link href="#" className="text-xs hover:underline underline-offset-4">
+                Privacy
+            </Link>
+        </nav>
       </footer>
     </div>
   );

@@ -23,6 +23,7 @@ import {
   Award,
   DollarSign,
   CalendarCheck,
+  Info,
 } from 'lucide-react';
 import { Logo } from '../logo';
 import Link from 'next/link';
@@ -93,6 +94,14 @@ export default function AppSidebar() {
               <Link href="/settings">
                 <Settings />
                 <span>Settings</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip={{ children: 'About Us', side: 'right' }}>
+              <Link href="/about">
+                <Info />
+                <span>About Us</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
