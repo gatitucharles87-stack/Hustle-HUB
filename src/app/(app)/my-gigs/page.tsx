@@ -51,55 +51,49 @@ export default function MyGigsPage() {
             </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-            <div className="lg:col-span-1">
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2"><Briefcase /> Active Applications</CardTitle>
-                        <CardDescription>Your currently active job applications.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Job Title</TableHead>
-                                    <TableHead>Category</TableHead>
-                                    <TableHead>Date Applied</TableHead>
-                                    <TableHead>Status</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {appliedJobs.map((job, index) => (
-                                    <TableRow key={index}>
-                                        <TableCell className="font-medium">{job.title}</TableCell>
-                                        <TableCell>{job.category}</TableCell>
-                                        <TableCell>{job.date}</TableCell>
-                                        <TableCell>
-                                            <Badge variant={job.status === 'Pending' ? 'secondary' : 'default'}>
-                                                {job.status === 'Pending' ? <Clock className="mr-1 h-3 w-3" /> : <CheckCircle className="mr-1 h-3 w-3" />}
-                                                {job.status}
-                                            </Badge>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </CardContent>
-                </Card>
-            </div>
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Briefcase /> Active Applications</CardTitle>
+                <CardDescription>Your currently active job applications.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Job Title</TableHead>
+                            <TableHead>Category</TableHead>
+                            <TableHead>Date Applied</TableHead>
+                            <TableHead>Status</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {appliedJobs.map((job, index) => (
+                            <TableRow key={index}>
+                                <TableCell className="font-medium">{job.title}</TableCell>
+                                <TableCell>{job.category}</TableCell>
+                                <TableCell>{job.date}</TableCell>
+                                <TableCell>
+                                    <Badge variant={job.status === 'Pending' ? 'secondary' : 'default'}>
+                                        {job.status === 'Pending' ? <Clock className="mr-1 h-3 w-3" /> : <CheckCircle className="mr-1 h-3 w-3" />}
+                                        {job.status}
+                                    </Badge>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </CardContent>
+        </Card>
 
-            <div className="lg:col-span-1">
-                <Card className="h-full">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2"><Calendar /> Upcoming Gigs</CardTitle>
-                        <CardDescription>Your schedule for accepted jobs. Click a date to see details.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <JobCalendar events={upcomingGigs} />
-                    </CardContent>
-                </Card>
-            </div>
-        </div>
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Calendar /> Upcoming Gigs</CardTitle>
+                <CardDescription>Your schedule for accepted jobs. Click a date to see details.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <JobCalendar events={upcomingGigs} />
+            </CardContent>
+        </Card>
     </div>
   );
 }

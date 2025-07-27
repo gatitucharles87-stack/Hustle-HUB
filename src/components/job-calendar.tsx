@@ -19,7 +19,7 @@ type JobCalendarProps = {
 export function JobCalendar({ events }: JobCalendarProps) {
   const [date, setDate] = useState<Date | undefined>(new Date())
 
-  const selectedEvents = events.filter(e => e.date.toDateString() === date?.toDateString());
+  const selectedEvents = events.filter(e => date && e.date.toDateString() === date.toDateString());
 
   return (
      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
