@@ -93,7 +93,9 @@ export default function FreelancerDashboardPage() {
                     <p className="text-sm text-muted-foreground">Top 10% in your category</p>
                 </div>
               </div>
-               <Button variant="outline" className="w-full">Access Skill Barter Exchange</Button>
+               <Button variant="outline" className="w-full" asChild>
+                  <Link href="/skill-barter">Access Skill Barter Exchange</Link>
+               </Button>
           </CardContent>
         </Card>
         <div className="flex flex-col gap-4">
