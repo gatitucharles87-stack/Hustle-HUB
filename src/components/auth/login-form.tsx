@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -7,9 +8,18 @@ import { LogIn } from "lucide-react";
 import Link from "next/link";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export function LoginForm() {
   const [role, setRole] = useState("freelancer");
+  const router = useRouter();
+
+  const handleLogin = () => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('userRole', role);
+    }
+    router.push(`/dashboard/${role}`);
+  };
 
   return (
     <div className="grid gap-4">
@@ -39,10 +49,8 @@ export function LoginForm() {
             </div>
         </RadioGroup>
       </div>
-      <Button type="submit" className="w-full" asChild>
-        <Link href={`/dashboard/${role}`}>
+      <Button type="submit" className="w-full" onClick={handleLogin}>
           <LogIn className="mr-2 h-4 w-4" /> Login
-        </Link>
       </Button>
     </div>
   );

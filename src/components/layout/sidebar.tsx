@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -29,6 +30,7 @@ import {
 } from 'lucide-react';
 import { Logo } from '../logo';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
 const employerMenuItems = [
   { href: '/dashboard/employer', label: 'Dashboard', icon: LayoutDashboard },
@@ -48,14 +50,18 @@ const freelancerMenuItems = [
   { href: '/commissions', label: 'My Commissions', icon: DollarSign },
 ];
 
-const sharedPaths = ['/profile', '/settings', '/about'];
-
 export default function AppSidebar() {
   const pathname = usePathname();
-  
-  // A more robust way to determine role, preventing navigation errors.
-  const isEmployerPath = /^\/(dashboard\/employer|dashboard\/post-job|hire|loyalty|map)/.test(pathname);
-  const userRole = isEmployerPath ? 'employer' : 'freelancer';
+  const [userRole, setUserRole] = useState('freelancer');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const role = sessionStorage.getItem('userRole');
+      if (role === 'employer' || role === 'freelancer') {
+        setUserRole(role);
+      }
+    }
+  }, [pathname]);
 
   const menuItems = userRole === 'employer' ? employerMenuItems : freelancerMenuItems;
 

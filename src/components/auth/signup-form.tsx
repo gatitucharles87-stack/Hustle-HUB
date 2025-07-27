@@ -15,11 +15,13 @@ import { UserPlus } from "lucide-react";
 import Link from "next/link";
 import { useState, useMemo } from "react";
 import { counties } from "@/lib/locations";
+import { useRouter } from "next/navigation";
 
 export function SignupForm() {
     const [role, setRole] = useState("freelancer");
     const [selectedCounty, setSelectedCounty] = useState('');
     const [selectedSubCounty, setSelectedSubCounty] = useState('');
+    const router = useRouter();
 
     const subCounties = useMemo(() => {
         if (!selectedCounty) return [];
@@ -33,6 +35,12 @@ export function SignupForm() {
         return subCounty ? subCounty.areas : [];
     }, [selectedSubCounty, subCounties]);
 
+    const handleSignup = () => {
+        if (typeof window !== 'undefined') {
+            sessionStorage.setItem('userRole', role);
+        }
+        router.push(`/dashboard/${role}`);
+    };
 
   return (
     <div className="grid gap-4">
@@ -107,10 +115,8 @@ export function SignupForm() {
                  )}
             </>
         )}
-      <Button type="submit" className="w-full" asChild>
-        <Link href={`/dashboard/${role}`}>
+      <Button type="submit" className="w-full" onClick={handleSignup}>
           <UserPlus className="mr-2 h-4 w-4" /> Sign Up
-        </Link>
       </Button>
     </div>
   );

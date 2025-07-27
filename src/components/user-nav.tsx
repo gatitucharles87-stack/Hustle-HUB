@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -15,15 +16,24 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { CreditCard, LogOut, User, Star } from "lucide-react";
+import { CreditCard, LogOut, User } from "lucide-react";
 import Link from "next/link";
 import { ThemeToggle } from "./theme-toggle";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export function UserNav() {
   const pathname = usePathname();
-  const isEmployerPath = /^\/(dashboard\/employer|dashboard\/post-job|hire|loyalty|map)/.test(pathname);
-  const userRole = isEmployerPath ? 'employer' : 'freelancer';
+  const [userRole, setUserRole] = useState('freelancer');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const role = sessionStorage.getItem('userRole');
+      if (role === 'employer' || role === 'freelancer') {
+        setUserRole(role);
+      }
+    }
+  }, [pathname]);
 
   const billingLink = userRole === 'employer' ? '/loyalty' : '/commissions';
 
