@@ -80,7 +80,7 @@ export default function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild tooltip={{ children: 'Profile', side: 'right' }}>
-              <Link href="#">
+              <Link href="/settings">
                 <Users />
                 <span>Profile</span>
               </Link>
@@ -88,7 +88,7 @@ export default function AppSidebar() {
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton asChild tooltip={{ children: 'Settings', side: 'right' }}>
-              <Link href="#">
+              <Link href="/settings">
                 <Settings />
                 <span>Settings</span>
               </Link>
