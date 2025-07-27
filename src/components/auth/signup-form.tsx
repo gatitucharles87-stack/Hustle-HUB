@@ -12,8 +12,10 @@ import {
 } from "@/components/ui/select";
 import { UserPlus } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 
 export function SignupForm() {
+    const [role, setRole] = useState("freelancer");
   return (
     <div className="grid gap-4">
       <div className="grid gap-2">
@@ -30,7 +32,7 @@ export function SignupForm() {
       </div>
       <div className="grid gap-2">
         <Label htmlFor="role">I am a...</Label>
-        <Select>
+        <Select onValueChange={setRole} defaultValue="freelancer">
           <SelectTrigger id="role">
             <SelectValue placeholder="Select your role" />
           </SelectTrigger>
@@ -41,7 +43,7 @@ export function SignupForm() {
         </Select>
       </div>
       <Button type="submit" className="w-full" asChild>
-        <Link href="/dashboard">
+        <Link href={`/dashboard/${role}`}>
           <UserPlus className="mr-2 h-4 w-4" /> Sign Up
         </Link>
       </Button>

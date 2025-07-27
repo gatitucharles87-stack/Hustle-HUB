@@ -18,21 +18,32 @@ import {
   PenSquare,
   Settings,
   LogOut,
+  Users,
 } from 'lucide-react';
 import { Logo } from '../logo';
 import Link from 'next/link';
 import { Button } from '../ui/button';
+import { Separator } from '../ui/separator';
 
-const menuItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+const employerMenuItems = [
+  { href: '/dashboard/employer', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/dashboard/post-job', label: 'Post a Job', icon: PenSquare },
+];
+
+const freelancerMenuItems = [
+  { href: '/dashboard/freelancer', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/jobs', label: 'Find Jobs', icon: Briefcase },
   { href: '/map', label: 'Map View', icon: Map },
   { href: '/loyalty', label: 'Loyalty Program', icon: Award },
 ];
 
+
 export default function AppSidebar() {
   const pathname = usePathname();
+  // In a real app, this would come from user authentication state
+  const userRole = pathname.includes('/employer') || pathname.includes('/post-job') ? 'employer' : 'freelancer';
+
+  const menuItems = userRole === 'employer' ? employerMenuItems : freelancerMenuItems;
 
   return (
     <Sidebar>
@@ -40,6 +51,9 @@ export default function AppSidebar() {
         <Logo />
       </SidebarHeader>
       <SidebarContent className="p-2">
+        <div className="px-4 py-2">
+            <p className="font-semibold text-sm">{userRole === 'employer' ? 'Employer Menu' : 'Freelancer Menu'}</p>
+        </div>
         <SidebarMenu>
           {menuItems.map((item) => (
             <SidebarMenuItem key={item.href}>
@@ -59,6 +73,14 @@ export default function AppSidebar() {
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip={{ children: 'Profile', side: 'right' }}>
+              <Link href="#">
+                <Users />
+                <span>Profile</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton asChild tooltip={{ children: 'Settings', side: 'right' }}>
               <Link href="#">
