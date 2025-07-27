@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Gift, Star, Users } from "lucide-react";
+import { Gift, Star, Users, Share2 } from "lucide-react";
 import {
   Table,
   TableHeader,
@@ -71,6 +71,7 @@ export default function ReferralsPage() {
                   https://hustlehub.app/ref/user123abc
                 </code>
                 <Button variant="outline">Copy Link</Button>
+                <Button variant="outline"><Share2 className="mr-2 h-4 w-4" /> Share</Button>
               </div>
             </div>
 
