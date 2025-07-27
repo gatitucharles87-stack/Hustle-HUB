@@ -20,6 +20,8 @@ import {
   Users,
   Repeat,
   Gift,
+  Award,
+  DollarSign,
 } from 'lucide-react';
 import { Logo } from '../logo';
 import Link from 'next/link';
@@ -36,6 +38,8 @@ const freelancerMenuItems = [
   { href: '/jobs', label: 'Find Jobs', icon: Briefcase },
   { href: '/skill-barter', label: 'Skill Barter', icon: Repeat },
   { href: '/referrals', label: 'Referrals', icon: Gift },
+  { href: '/badges', label: 'My Badges', icon: Award },
+  { href: '/commissions', label: 'My Commissions', icon: DollarSign },
 ];
 
 

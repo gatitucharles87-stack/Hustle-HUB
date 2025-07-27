@@ -1,7 +1,7 @@
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Award, BarChart2, Briefcase, FileText, Gift, Lightbulb, UserCheck } from "lucide-react";
+import { Award, BarChart2, Briefcase, FileText, Gift, Lightbulb, UserCheck, ShieldCheck, DollarSign } from "lucide-react";
 import Link from "next/link";
 
 export default function FreelancerDashboardPage() {
@@ -20,9 +20,11 @@ export default function FreelancerDashboardPage() {
         <AlertTriangleIcon className="h-4 w-4" />
         <AlertTitle>Commission Payment Due!</AlertTitle>
         <AlertDescription>
-          You have an outstanding commission of $45.00. Please settle it within <strong>8 days</strong> to avoid account suspension.
-          <div className="mt-2">
-            <Button variant="outline" size="sm">Pay Now</Button>
+           You have an outstanding commission of $45.00. This is due within <strong>8 days</strong> to avoid account suspension.
+          <div className="mt-2 flex gap-2">
+            <Button variant="outline" size="sm" asChild>
+                <Link href="/commissions">View Commission Details</Link>
+            </Button>
             <Button variant="link" size="sm">Submit Excuse</Button>
           </div>
         </AlertDescription>
@@ -94,19 +96,34 @@ export default function FreelancerDashboardPage() {
                <Button variant="outline" className="w-full">Access Skill Barter Exchange</Button>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader>
-              <CardTitle className="font-headline flex items-center gap-2"><Gift /> Referrals & Loyalty</CardTitle>
-              <CardDescription>Earn loyalty points by inviting friends to the platform.</CardDescription>
-          </CardHeader>
-          <CardContent>
-              <Button asChild>
-                  <Link href="/referrals">
-                      Go to Referrals Page
-                  </Link>
-              </Button>
-          </CardContent>
-        </Card>
+        <div className="flex flex-col gap-4">
+            <Card>
+            <CardHeader>
+                <CardTitle className="font-headline flex items-center gap-2"><ShieldCheck /> My Badges</CardTitle>
+                <CardDescription>View your collection of earned badges and achievements.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Button asChild>
+                    <Link href="/badges">
+                        View My Badges
+                    </Link>
+                </Button>
+            </CardContent>
+            </Card>
+            <Card>
+            <CardHeader>
+                <CardTitle className="font-headline flex items-center gap-2"><DollarSign /> My Commissions</CardTitle>
+                <CardDescription>Track your owed commissions and payment history.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Button asChild>
+                    <Link href="/commissions">
+                        View My Commissions
+                    </Link>
+                </Button>
+            </CardContent>
+            </Card>
+        </div>
       </div>
     </div>
   );
