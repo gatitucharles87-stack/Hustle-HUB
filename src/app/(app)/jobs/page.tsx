@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -5,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Briefcase, MapPin, Search } from "lucide-react";
+import { LocationSelector } from "@/components/location-selector";
 
 const jobListings = [
   {
@@ -69,9 +71,9 @@ export default function JobsPage() {
                     </SelectContent>
                 </Select>
             </div>
-             <div className="space-y-2">
-                <Label htmlFor="search-location">Location</Label>
-                <Input id="search-location" placeholder="e.g., 'Nairobi'" />
+            <div className="space-y-4">
+                <Label>Location</Label>
+                <LocationSelector />
             </div>
           </CardContent>
           <CardFooter>
