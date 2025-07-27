@@ -30,13 +30,13 @@ const upcomingGigs = [
     {
         title: "Plumber for Leaky Faucet",
         employer: "John Doe",
-        date: new Date(new Date().setDate(new Date().getDate() + 3)), // 3 days from now
+        date: new Date(new Date().setDate(new Date().getDate() + 3)),
         status: "Accepted",
     },
      {
         title: "Frontend Developer (React)",
         employer: "Jane Smith",
-        date: new Date(new Date().setDate(new Date().getDate() + 7)), // 7 days from now
+        date: new Date(new Date().setDate(new Date().getDate() + 7)),
         status: "Accepted",
     }
 ];
@@ -89,10 +89,10 @@ export default function MyGigsPage() {
             </div>
 
             <div className="xl:col-span-1">
-                <Card>
+                <Card className="h-full">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2"><Calendar /> Upcoming Gigs</CardTitle>
-                        <CardDescription>Your schedule for accepted jobs.</CardDescription>
+                        <CardDescription>Your schedule for accepted jobs. Click a date to see details.</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <JobCalendar events={upcomingGigs} />

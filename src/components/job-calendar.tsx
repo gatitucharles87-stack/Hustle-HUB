@@ -2,12 +2,14 @@
 
 import { useState } from "react"
 import { Calendar } from "@/components/ui/calendar"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { User } from "lucide-react"
+import { format } from "date-fns"
 
 type CalendarEvent = {
   title: string
   date: Date
+  employer: string
 }
 
 type JobCalendarProps = {
@@ -17,7 +19,7 @@ type JobCalendarProps = {
 export function JobCalendar({ events }: JobCalendarProps) {
   const [date, setDate] = useState<Date | undefined>(new Date())
 
-  const eventDates = events.map(event => event.date.toDateString());
+  const selectedEvents = events.filter(e => e.date.toDateString() === date?.toDateString());
 
   return (
      <div className="space-y-4">
@@ -34,16 +36,28 @@ export function JobCalendar({ events }: JobCalendarProps) {
             }}
         />
         <div className="space-y-2">
-            <h4 className="font-semibold">Selected Date Gigs:</h4>
-            <div className="space-y-2">
-                {events.filter(e => e.date.toDateString() === date?.toDateString()).length > 0 ? (
-                    events.filter(e => e.date.toDateString() === date?.toDateString()).map((event, index) => (
-                         <Card key={index} className="p-3">
-                            <p className="font-semibold">{event.title}</p>
+            <h4 className="font-semibold text-lg">
+                Gigs for: <span className="text-primary">{date ? format(date, "PPP") : "No date selected"}</span>
+            </h4>
+            <div className="space-y-4">
+                {selectedEvents.length > 0 ? (
+                    selectedEvents.map((event, index) => (
+                         <Card key={index} className="border-l-4 border-primary">
+                            <CardHeader className="p-4">
+                                <CardTitle className="text-base">{event.title}</CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-4 pt-0">
+                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                    <User className="h-4 w-4" />
+                                    <span>Employer: {event.employer}</span>
+                                </div>
+                            </CardContent>
                          </Card>
                     ))
                 ) : (
-                    <p className="text-sm text-muted-foreground">No gigs scheduled for this day.</p>
+                    <div className="text-center py-8 px-4 bg-muted/50 rounded-lg">
+                        <p className="text-sm text-muted-foreground">No gigs scheduled for this day.</p>
+                    </div>
                 )}
             </div>
         </div>
