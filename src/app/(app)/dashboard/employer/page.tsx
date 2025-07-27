@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { PenSquare, Users, Briefcase, CheckCircle } from "lucide-react";
+import { PenSquare, Users, Briefcase, CheckCircle, Map, Star } from "lucide-react";
 import Link from "next/link";
 import {
   Table,
@@ -32,7 +32,7 @@ export default function EmployerDashboardPage() {
         </Button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Active Listings</CardTitle>
@@ -63,69 +63,96 @@ export default function EmployerDashboardPage() {
             <p className="text-xs text-muted-foreground">Successfully filled positions</p>
           </CardContent>
         </Card>
+         <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Loyalty Points</CardTitle>
+            <Star className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">450</div>
+            <p className="text-xs text-muted-foreground">Earned from referrals & activity</p>
+          </CardContent>
+        </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="font-headline">My Job Listings</CardTitle>
-          <CardDescription>An overview of all your posted jobs.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Job Title</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Applicants</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              <TableRow>
-                <TableCell className="font-medium">Plumber for Leaky Faucet</TableCell>
-                <TableCell><Badge variant="outline">Open</Badge></TableCell>
-                <TableCell>12</TableCell>
-                <TableCell>
-                  <Button variant="secondary" size="sm">View Applicants</Button>
-                </TableCell>
-              </TableRow>
-               <TableRow>
-                <TableCell className="font-medium">Frontend Developer (React)</TableCell>
-                <TableCell><Badge>In Progress</Badge></TableCell>
-                <TableCell>1 (Selected)</TableCell>
-                <TableCell>
-                   <Button variant="secondary" size="sm">View Applicant</Button>
-                </TableCell>
-              </TableRow>
-               <TableRow>
-                <TableCell className="font-medium">Graphic Designer for Logo</TableCell>
-                <TableCell><Badge variant="destructive">Closed</Badge></TableCell>
-                <TableCell>25</TableCell>
-                <TableCell>
-                  <Button variant="secondary" size="sm" disabled>View Applicants</Button>
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <Card>
+          <CardHeader>
+            <CardTitle className="font-headline">My Job Listings</CardTitle>
+            <CardDescription>An overview of all your posted jobs.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Job Title</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Applicants</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow>
+                  <TableCell className="font-medium">Plumber for Leaky Faucet</TableCell>
+                  <TableCell><Badge variant="outline">Open</Badge></TableCell>
+                  <TableCell>12</TableCell>
+                  <TableCell>
+                    <Button variant="secondary" size="sm">View Applicants</Button>
+                  </TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell className="font-medium">Frontend Developer (React)</TableCell>
+                  <TableCell><Badge>In Progress</Badge></TableCell>
+                  <TableCell>1 (Selected)</TableCell>
+                  <TableCell>
+                    <Button variant="secondary" size="sm">View Applicant</Button>
+                  </TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell className="font-medium">Graphic Designer for Logo</TableCell>
+                  <TableCell><Badge variant="destructive">Closed</Badge></TableCell>
+                  <TableCell>25</TableCell>
+                  <TableCell>
+                    <Button variant="secondary" size="sm" disabled>View Applicants</Button>
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="font-headline">Refer a Friend</CardTitle>
-          <CardDescription>Invite other employers and earn loyalty points!</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          <div className="flex items-center space-x-2">
-            <p className="text-sm text-muted-foreground">Your referral link:</p>
-            <div className="flex-1 p-2 border rounded-md bg-muted text-sm">
-              <code>https://hustlehub.app/ref/employer123</code>
-            </div>
-            <Button variant="outline">Copy</Button>
-          </div>
-           <p className="text-sm">You've referred <strong>3</strong> friends and earned <strong>300</strong> loyalty points.</p>
-        </CardContent>
-      </Card>
+        <div className="flex flex-col gap-4">
+          <Card>
+            <CardHeader>
+                <CardTitle className="font-headline flex items-center gap-2"><Map /> Find Freelancers Nearby</CardTitle>
+                <CardDescription>Use our map to discover and hire skilled freelancers in your area.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Button asChild>
+                    <Link href="/map">
+                        Open Map View
+                    </Link>
+                </Button>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-headline">Refer a Friend</CardTitle>
+              <CardDescription>Invite other employers and earn loyalty points!</CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-4">
+              <div className="flex items-center space-x-2">
+                <p className="text-sm text-muted-foreground">Your referral link:</p>
+                <div className="flex-1 p-2 border rounded-md bg-muted text-sm">
+                  <code>https://hustlehub.app/ref/employer123</code>
+                </div>
+                <Button variant="outline">Copy</Button>
+              </div>
+              <p className="text-sm">You've referred <strong>3</strong> friends and earned <strong>300</strong> loyalty points.</p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }

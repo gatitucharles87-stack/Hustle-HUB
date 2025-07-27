@@ -1,19 +1,117 @@
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Briefcase, MapPin, Search } from "lucide-react";
+
+const jobListings = [
+  {
+    title: "Urgent: Fix Leaky Kitchen Sink",
+    category: "Home Services",
+    location: "Nairobi, Kenya",
+    tags: ["Urgent", "Plumbing"],
+    description: "Water is dripping from under the sink. Need an experienced plumber to fix it today.",
+  },
+  {
+    title: "Build a Responsive React Landing Page",
+    category: "Tech",
+    location: "Remote",
+    tags: ["React", "Web Development"],
+    description: "Looking for a skilled frontend developer to create a modern and fast landing page for our new product.",
+  },
+  {
+    title: "Professional Headshots for Corporate Team",
+    category: "Photography",
+    location: "Mombasa, Kenya",
+    tags: ["Photography", "Corporate"],
+    description: "We need a photographer for a team of 15 people. Must have a portfolio.",
+  },
+    {
+    title: "Design a new Logo for a Startup",
+    category: "Design",
+    location: "Remote",
+    tags: ["Logo Design", "Branding"],
+    description: "We are a new tech startup and need a modern and memorable logo.",
+  },
+];
+
 
 export default function JobsPage() {
   return (
-    <div className="flex flex-col gap-8">
-      <Card>
-        <CardHeader>
-          <CardTitle className="font-headline">Find Jobs</CardTitle>
-          <CardDescription>Browse and filter job listings to find your next opportunity.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-16 border-2 border-dashed rounded-lg">
-            <p className="text-muted-foreground">Job listings will be displayed here.</p>
-          </div>
-        </CardContent>
-      </Card>
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+      <div className="md:col-span-1">
+        <Card>
+          <CardHeader>
+            <CardTitle className="font-headline flex items-center gap-2"><Search /> Filter Jobs</CardTitle>
+            <CardDescription>Refine your search to find the perfect gig.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+             <div className="space-y-2">
+                <Label htmlFor="search-keywords">Keywords</Label>
+                <Input id="search-keywords" placeholder="e.g., 'React' or 'Plumber'" />
+            </div>
+             <div className="space-y-2">
+                <Label htmlFor="search-category">Category</Label>
+                <Select>
+                    <SelectTrigger id="search-category">
+                        <SelectValue placeholder="All Categories" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Categories</SelectItem>
+                        <SelectItem value="tech">Tech</SelectItem>
+                        <SelectItem value="home-services">Home Services</SelectItem>
+                        <SelectItem value="design">Design</SelectItem>
+                        <SelectItem value="writing">Writing</SelectItem>
+                        <SelectItem value="beauty">Beauty</SelectItem>
+                        <SelectItem value="photography">Photography</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+             <div className="space-y-2">
+                <Label htmlFor="search-location">Location</Label>
+                <Input id="search-location" placeholder="e.g., 'Nairobi'" />
+            </div>
+          </CardContent>
+          <CardFooter>
+            <Button className="w-full">Apply Filters</Button>
+          </CardFooter>
+        </Card>
+      </div>
+      <div className="md:col-span-3">
+        <h1 className="text-3xl font-bold tracking-tight font-headline mb-6">
+          Available Jobs ({jobListings.length})
+        </h1>
+        <div className="space-y-4">
+          {jobListings.map((job, index) => (
+            <Card key={index}>
+              <CardHeader>
+                <CardTitle>{job.title}</CardTitle>
+                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-1">
+                        <Briefcase className="h-4 w-4" />
+                        <span>{job.category}</span>
+                    </div>
+                     <div className="flex items-center gap-1">
+                        <MapPin className="h-4 w-4" />
+                        <span>{job.location}</span>
+                    </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="mb-4">{job.description}</p>
+                <div className="flex gap-2">
+                  {job.tags.map(tag => <Badge key={tag} variant="secondary">{tag}</Badge>)}
+                </div>
+              </CardContent>
+              <CardFooter className="flex justify-end">
+                <Button>Apply Now</Button>
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
