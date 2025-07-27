@@ -99,7 +99,9 @@ export default function EmployerDashboardPage() {
                   <TableCell><Badge variant="outline">Open</Badge></TableCell>
                   <TableCell>12</TableCell>
                   <TableCell>
-                    <Button variant="secondary" size="sm">View Applicants</Button>
+                    <Button variant="secondary" size="sm" asChild>
+                      <Link href="/profile">View Applicants</Link>
+                    </Button>
                   </TableCell>
                 </TableRow>
                 <TableRow>
@@ -107,7 +109,9 @@ export default function EmployerDashboardPage() {
                   <TableCell><Badge>In Progress</Badge></TableCell>
                   <TableCell>1 (Selected)</TableCell>
                   <TableCell>
-                    <Button variant="secondary" size="sm">View Applicant</Button>
+                    <Button variant="secondary" size="sm" asChild>
+                      <Link href="/profile">View Applicant</Link>
+                    </Button>
                   </TableCell>
                 </TableRow>
                 <TableRow>
