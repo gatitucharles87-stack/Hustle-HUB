@@ -8,7 +8,7 @@ import {
     TableCell,
   } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { DollarSign, Briefcase, Calendar, CheckCircle, Clock } from "lucide-react";
+import { Briefcase, Calendar, CheckCircle, Clock } from "lucide-react";
 import { JobCalendar } from "@/components/job-calendar";
 
 const appliedJobs = [
@@ -41,20 +41,18 @@ const upcomingGigs = [
     }
 ];
 
-const totalEarnings = 750;
-
 export default function MyGigsPage() {
   return (
     <div className="flex flex-col gap-8">
         <div>
             <h1 className="text-3xl font-bold tracking-tight font-headline">My Gigs</h1>
             <p className="text-muted-foreground">
-                Track your job applications, upcoming gigs, and earnings.
+                Track your job applications and upcoming gigs.
             </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 flex flex-col gap-8">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 items-start">
+            <div className="xl:col-span-2">
                 <Card>
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2"><Briefcase /> Active Applications</CardTitle>
@@ -88,19 +86,9 @@ export default function MyGigsPage() {
                         </Table>
                     </CardContent>
                 </Card>
-                 <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2"><DollarSign /> Earnings Summary</CardTitle>
-                         <CardDescription>A summary of your total earnings from completed jobs.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <p className="text-4xl font-bold text-primary">${totalEarnings.toFixed(2)}</p>
-                        <p className="text-sm text-muted-foreground">Total earnings before commission.</p>
-                    </CardContent>
-                </Card>
             </div>
 
-            <div className="lg:col-span-1">
+            <div className="xl:col-span-1">
                 <Card>
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2"><Calendar /> Upcoming Gigs</CardTitle>
