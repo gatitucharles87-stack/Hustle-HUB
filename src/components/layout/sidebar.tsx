@@ -48,11 +48,14 @@ const freelancerMenuItems = [
   { href: '/commissions', label: 'My Commissions', icon: DollarSign },
 ];
 
+const sharedPaths = ['/profile', '/settings', '/about'];
 
 export default function AppSidebar() {
   const pathname = usePathname();
-  // In a real app, this would come from user authentication state
-  const userRole = pathname.includes('/employer') || pathname.includes('/post-job') || pathname.includes('/loyalty') || pathname.includes('/hire') ? 'employer' : 'freelancer';
+  
+  // A more robust way to determine role, preventing navigation errors.
+  const isEmployerPath = /^\/(dashboard\/employer|dashboard\/post-job|hire|loyalty|map)/.test(pathname);
+  const userRole = isEmployerPath ? 'employer' : 'freelancer';
 
   const menuItems = userRole === 'employer' ? employerMenuItems : freelancerMenuItems;
 
@@ -70,7 +73,7 @@ export default function AppSidebar() {
             <SidebarMenuItem key={item.href}>
               <SidebarMenuButton
                 asChild
-                isActive={pathname === item.href}
+                isActive={pathname.startsWith(item.href)}
                 tooltip={{ children: item.label, side: 'right' }}
               >
                 <Link href={item.href}>
@@ -85,7 +88,7 @@ export default function AppSidebar() {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip={{ children: 'Profile', side: 'right' }}>
+            <SidebarMenuButton asChild isActive={pathname.startsWith('/profile')} tooltip={{ children: 'Profile', side: 'right' }}>
               <Link href="/profile">
                 <Users />
                 <span>Profile</span>
@@ -93,7 +96,7 @@ export default function AppSidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip={{ children: 'Settings', side: 'right' }}>
+            <SidebarMenuButton asChild isActive={pathname.startsWith('/settings')} tooltip={{ children: 'Settings', side: 'right' }}>
               <Link href="/settings">
                 <Settings />
                 <span>Settings</span>
@@ -101,7 +104,7 @@ export default function AppSidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip={{ children: 'About Us', side: 'right' }}>
+            <SidebarMenuButton asChild isActive={pathname.startsWith('/about')} tooltip={{ children: 'About Us', side: 'right' }}>
               <Link href="/about">
                 <Info />
                 <span>About Us</span>

@@ -100,7 +100,7 @@ export default function EmployerDashboardPage() {
                   <TableCell>12</TableCell>
                   <TableCell>
                     <Button variant="secondary" size="sm" asChild>
-                      <Link href="/profile">View Applicants</Link>
+                      <Link href="/dashboard/employer/applicants">View Applicants</Link>
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -110,7 +110,7 @@ export default function EmployerDashboardPage() {
                   <TableCell>1 (Selected)</TableCell>
                   <TableCell>
                     <Button variant="secondary" size="sm" asChild>
-                      <Link href="/profile">View Applicant</Link>
+                      <Link href="/dashboard/employer/applicants">View Applicant</Link>
                     </Button>
                   </TableCell>
                 </TableRow>

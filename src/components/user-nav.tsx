@@ -1,3 +1,5 @@
+'use client';
+
 import {
   Avatar,
   AvatarFallback,
@@ -16,8 +18,15 @@ import {
 import { CreditCard, LogOut, User, Star } from "lucide-react";
 import Link from "next/link";
 import { ThemeToggle } from "./theme-toggle";
+import { usePathname } from "next/navigation";
 
 export function UserNav() {
+  const pathname = usePathname();
+  const isEmployerPath = /^\/(dashboard\/employer|dashboard\/post-job|hire|loyalty|map)/.test(pathname);
+  const userRole = isEmployerPath ? 'employer' : 'freelancer';
+
+  const billingLink = userRole === 'employer' ? '/loyalty' : '/commissions';
+
   return (
     <div className="flex items-center gap-2">
       <ThemeToggle />
@@ -48,7 +57,7 @@ export function UserNav() {
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-               <Link href="/loyalty">
+               <Link href={billingLink}>
                 <CreditCard className="mr-2 h-4 w-4" />
                 <span>Billing</span>
               </Link>
