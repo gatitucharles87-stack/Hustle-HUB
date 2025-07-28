@@ -12,20 +12,24 @@ import {
 import { z } from 'zod';
 
 const jobPostFormSchema = z.object({
-  skills: z.string().min(1, 'Skills are required.'),
-  experience: z.string().min(1, 'Experience level is required.'),
-  category: z.string().min(1, 'Category is required.'),
+  skills: z.string().min(1, { message: 'Skills are required.' }),
+  experience: z.string().min(1, { message: 'Experience level is required.' }),
+  category: z.string().min(1, { message: 'Category is required.' }),
   jobType: z.enum(['remote', 'local']),
   location: z.string().optional(),
-}).refine(data => {
+})
+.refine(
+  (data) => {
     if (data.jobType === 'local') {
-        return !!data.location && data.location.length > 0;
+      return !!data.location && data.location.trim().length > 0;
     }
     return true;
-}, {
+  },
+  {
     message: 'Location is required for local jobs.',
     path: ['location'],
-});
+  }
+);
 
 
 const barterPostFormSchema = z.object({
@@ -58,13 +62,7 @@ export async function generateJobPostAction(
   prevState: JobPostFormState,
   formData: FormData
 ): Promise<JobPostFormState> {
-  const rawFormData = {
-    skills: formData.get('skills'),
-    experience: formData.get('experience'),
-    category: formData.get('category'),
-    jobType: formData.get('jobType'),
-    location: formData.get('location'),
-  };
+  const rawFormData = Object.fromEntries(formData.entries());
 
   const validatedFields = jobPostFormSchema.safeParse(rawFormData);
 
