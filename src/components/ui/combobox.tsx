@@ -52,7 +52,7 @@ export function Combobox({
           disabled={disabled}
         >
           {value
-            ? options.find((option) => option.value === value)?.label
+            ? options.find((option) => option.value.toLowerCase() === value.toLowerCase())?.label
             : placeholder}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -68,14 +68,14 @@ export function Combobox({
                     key={option.value}
                     value={option.value}
                     onSelect={(currentValue) => {
-                    onChange(currentValue === value ? "" : currentValue)
-                    setOpen(false)
+                      onChange(currentValue === value ? "" : currentValue)
+                      setOpen(false)
                     }}
                 >
                     <Check
                     className={cn(
                         "mr-2 h-4 w-4",
-                        value === option.value ? "opacity-100" : "opacity-0"
+                        value.toLowerCase() === option.value.toLowerCase() ? "opacity-100" : "opacity-0"
                     )}
                     />
                     {option.label}
