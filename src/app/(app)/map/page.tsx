@@ -10,8 +10,6 @@ import Image from "next/image";
 const mapData = [
     { type: 'freelancer', name: 'Alex Plumber', x: '20%', y: '30%' },
     { type: 'freelancer', name: 'Brenda FrontendDev', x: '60%', y: '45%' },
-    { type: 'job', title: 'Fix Leaky Kitchen Sink', x: '22%', y: '35%' },
-    { type: 'job', title: 'Build React Landing Page', x: '58%', y: '50%' },
     { type: 'freelancer', name: 'Charles Electrician', x: '75%', y: '60%' },
 ];
 
@@ -29,12 +27,8 @@ export default function MapPage() {
              <div className="space-y-2">
                 <Label>Show on map</Label>
                 <div className="flex items-center space-x-2">
-                    <Checkbox id="show-freelancers" defaultChecked />
+                    <Checkbox id="show-freelancers" defaultChecked disabled />
                     <Label htmlFor="show-freelancers">Freelancers</Label>
-                </div>
-                 <div className="flex items-center space-x-2">
-                    <Checkbox id="show-jobs" defaultChecked />
-                    <Label htmlFor="show-jobs">Jobs</Label>
                 </div>
             </div>
 
@@ -91,12 +85,10 @@ export default function MapPage() {
                     <div className="absolute inset-0 bg-black/10" />
                     {mapData.map((item, index) => (
                         <div key={index} className="absolute group" style={{ left: item.x, top: item.y }}>
-                            <div className={`
-                                w-8 h-8 rounded-full flex items-center justify-center 
-                                ${item.type === 'freelancer' ? 'bg-primary' : 'bg-accent'} 
-                                text-white shadow-lg cursor-pointer transform transition-transform group-hover:scale-110`
-                            }>
-                                {item.type === 'freelancer' ? <User size={16} /> : <Briefcase size={16} />}
+                            <div className="
+                                w-8 h-8 rounded-full flex items-center justify-center bg-primary text-white shadow-lg cursor-pointer transform transition-transform group-hover:scale-110"
+                            >
+                                <User size={16} />
                             </div>
                             <div className="
                                 absolute bottom-full left-1/2 -translate-x-1/2 mb-2 
@@ -104,7 +96,7 @@ export default function MapPage() {
                                 px-2 py-1 rounded-md shadow-md whitespace-nowrap
                                 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
                             >
-                                {item.type === 'freelancer' ? item.name : item.title}
+                                {item.name}
                             </div>
                         </div>
                     ))}
@@ -115,3 +107,4 @@ export default function MapPage() {
     </div>
   );
 }
+
