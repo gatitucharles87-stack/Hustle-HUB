@@ -46,53 +46,52 @@ const freelancers = [
 
 export default function HirePage() {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-      <div className="md:col-span-1">
-        <Card>
-          <CardHeader>
-            <CardTitle className="font-headline flex items-center gap-2"><UserSearch /> Find a Freelancer</CardTitle>
-            <CardDescription>Refine your search to find the perfect professional.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-             <div className="space-y-2">
-                <Label htmlFor="search-keywords">Keywords or Skills</Label>
-                <Input id="search-keywords" placeholder="e.g., 'React' or 'Plumber'" />
-            </div>
-             <div className="space-y-2">
-                <Label htmlFor="search-category">Category</Label>
-                <Select>
-                    <SelectTrigger id="search-category">
-                        <SelectValue placeholder="All Categories" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">All Categories</SelectItem>
-                        <SelectItem value="tech">Tech</SelectItem>
-                        <SelectItem value="home-services">Home Services</SelectItem>
-                        <SelectItem value="design">Design</SelectItem>
-                        <SelectItem value="writing">Writing</SelectItem>
-                        <SelectItem value="beauty">Beauty</SelectItem>
-                        <SelectItem value="photography">Photography</SelectItem>
-                    </SelectContent>
-                </Select>
-            </div>
-            <div className="space-y-2">
-                <Label htmlFor="search-area">Area or Neighborhood</Label>
-                <Input id="search-area" placeholder="e.g., 'South B' or 'Utawala'" />
-            </div>
-          </CardContent>
-          <CardFooter>
-            <Button className="w-full">
-                <Search className="mr-2 h-4 w-4" />
-                Search Freelancers
-            </Button>
-          </CardFooter>
-        </Card>
-      </div>
-      <div className="md:col-span-3">
+    <div className="flex flex-col gap-8">
+      <Card>
+        <CardHeader>
+          <CardTitle className="font-headline flex items-center gap-2"><UserSearch /> Find a Freelancer</CardTitle>
+          <CardDescription>Refine your search to find the perfect professional.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
+           <div className="space-y-2">
+              <Label htmlFor="search-keywords">Keywords or Skills</Label>
+              <Input id="search-keywords" placeholder="e.g., 'React' or 'Plumber'" />
+          </div>
+           <div className="space-y-2">
+              <Label htmlFor="search-category">Category</Label>
+              <Select>
+                  <SelectTrigger id="search-category">
+                      <SelectValue placeholder="All Categories" />
+                  </SelectTrigger>
+                  <SelectContent>
+                      <SelectItem value="all">All Categories</SelectItem>
+                      <SelectItem value="tech">Tech</SelectItem>
+                      <SelectItem value="home-services">Home Services</SelectItem>
+                      <SelectItem value="design">Design</SelectItem>
+                      <SelectItem value="writing">Writing</SelectItem>
+                      <SelectItem value="beauty">Beauty</SelectItem>
+                      <SelectItem value="photography">Photography</SelectItem>
+                  </SelectContent>
+              </Select>
+          </div>
+          <div className="space-y-2">
+              <Label htmlFor="search-area">Area or Neighborhood</Label>
+              <Input id="search-area" placeholder="e.g., 'South B' or 'Utawala'" />
+          </div>
+        </CardContent>
+        <CardFooter>
+          <Button className="w-full md:w-auto">
+              <Search className="mr-2 h-4 w-4" />
+              Search Freelancers
+          </Button>
+        </CardFooter>
+      </Card>
+
+      <div>
         <h1 className="text-3xl font-bold tracking-tight font-headline mb-6">
           Available Freelancers ({freelancers.length})
         </h1>
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {freelancers.map((freelancer, index) => (
             <Card key={index} className="flex flex-col">
               <CardHeader className="items-center text-center">
@@ -101,7 +100,7 @@ export default function HirePage() {
                     <AvatarFallback>{freelancer.name.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <CardTitle>{freelancer.name}</CardTitle>
-                <CardDescription className="text-sm">{freelancer.specialty}</CardDescription>
+                <CardDescription className="text-sm text-primary">{freelancer.specialty}</CardDescription>
               </CardHeader>
               <CardContent className="flex-grow">
                 <div className="flex items-center justify-center gap-1 text-sm text-muted-foreground mb-4">
