@@ -38,46 +38,29 @@ export type BarterPostFormState = {
   data: GenerateBarterPostOutput | null;
 };
 
-// Simplified validation for the job post form to fix the error.
-const jobPostFormSchema = z.object({
-  skills: z.string().min(1, 'Skills are required.'),
-  experience: z.string().min(1, 'Experience is required.'),
-  category: z.string().min(1, 'Category is required.'),
-  jobType: z.enum(['remote', 'local']),
-  location: z.string().optional(),
-});
-
 
 export async function generateJobPostAction(
   prevState: JobPostFormState,
   formData: FormData
 ): Promise<JobPostFormState> {
-  const rawFormData = {
-    skills: formData.get('skills'),
-    experience: formData.get('experience'),
-    category: formData.get('category'),
-    jobType: formData.get('jobType'),
-    location: formData.get('location'),
-  };
+  const skills = formData.get('skills') as string;
+  const experience = formData.get('experience') as string;
+  const category = formData.get('category') as string;
+  const jobType = formData.get('jobType') as string;
+  const location = formData.get('location') as string | null;
 
-  // Basic validation to ensure required fields are strings
-   const validatedFields = jobPostFormSchema.safeParse(rawFormData);
-
-  if (!validatedFields.success) {
+  if (!skills || !experience || !category || !jobType) {
     return {
       message: 'Invalid form data. Please fill out all required fields.',
-      errors: validatedFields.error.flatten().fieldErrors,
+      errors: null,
       data: null,
     };
   }
 
-  const { skills, experience, category, jobType, location } = validatedFields.data;
-  let finalLocation = 'Remote'; // Default to Remote
-
-  // If the job is local, we must have a location.
+  let finalLocation = 'Remote';
   if (jobType === 'local') {
-    if (!location || location.trim().length === 0) {
-      return {
+    if (!location || location.trim() === '') {
+       return {
         message: 'Location is required for local jobs.',
         errors: { location: ['Location is required for local jobs.'] },
         data: null,
