@@ -14,28 +14,24 @@ export function LocationSelector() {
     const countyOptions = useMemo(() => counties.map(c => ({ label: c.name, value: c.name })), []);
 
     const subCountyOptions = useMemo(() => {
-        if (!selectedCounty) return [];
-        const county = counties.find(c => c.name === selectedCounty);
-        return county ? county.sub_counties.map(sc => ({ label: sc.name, value: sc.name })) : [];
-    }, [selectedCounty]);
+        return counties.flatMap(county => 
+            county.sub_counties.map(sc => ({
+                label: `${sc.name}, ${county.name}`,
+                value: sc.name,
+            }))
+        );
+    }, []);
 
     const areaOptions = useMemo(() => {
-        if (!selectedSubCounty) return [];
-        const county = counties.find(c => c.name === selectedCounty);
-        const subCounty = county?.sub_counties.find(sc => sc.name === selectedSubCounty);
-        return subCounty ? subCounty.areas.map(a => ({ label: a, value: a })) : [];
-    }, [selectedCounty, selectedSubCounty]);
-
-    const handleCountyChange = (value: string) => {
-        setSelectedCounty(value);
-        setSelectedSubCounty('');
-        setSelectedArea('');
-    }
-
-    const handleSubCountyChange = (value: string) => {
-        setSelectedSubCounty(value);
-        setSelectedArea('');
-    }
+        return counties.flatMap(county => 
+            county.sub_counties.flatMap(sc => 
+                sc.areas.map(area => ({
+                    label: `${area}, ${sc.name}`,
+                    value: area,
+                }))
+            )
+        );
+    }, []);
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -44,7 +40,7 @@ export function LocationSelector() {
                 <Combobox
                     options={countyOptions}
                     value={selectedCounty}
-                    onChange={handleCountyChange}
+                    onChange={setSelectedCounty}
                     placeholder="Select County"
                     searchPlaceholder="Search county..."
                     emptyPlaceholder="No county found."
@@ -55,11 +51,10 @@ export function LocationSelector() {
                  <Combobox
                     options={subCountyOptions}
                     value={selectedSubCounty}
-                    onChange={handleSubCountyChange}
+                    onChange={setSelectedSubCounty}
                     placeholder="Select Sub-county"
                     searchPlaceholder="Search sub-county..."
                     emptyPlaceholder="No sub-county found."
-                    disabled={!selectedCounty}
                 />
             </div>
             <div className="space-y-2">
@@ -71,7 +66,6 @@ export function LocationSelector() {
                     placeholder="Select Area"
                     searchPlaceholder="Search area..."
                     emptyPlaceholder="No area found."
-                    disabled={!selectedSubCounty}
                 />
             </div>
         </div>
