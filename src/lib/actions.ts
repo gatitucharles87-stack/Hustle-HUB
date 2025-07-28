@@ -58,18 +58,13 @@ export async function generateJobPostAction(
   prevState: JobPostFormState,
   formData: FormData
 ): Promise<JobPostFormState> {
-  const jobType = formData.get('jobType');
-  const rawFormData: { [key: string]: any } = {
+  const rawFormData = {
     skills: formData.get('skills'),
     experience: formData.get('experience'),
     category: formData.get('category'),
-    jobType: jobType,
+    jobType: formData.get('jobType'),
+    location: formData.get('location'),
   };
-
-  if (jobType === 'local') {
-    rawFormData.location = formData.get('location');
-  }
-
 
   const validatedFields = jobPostFormSchema.safeParse(rawFormData);
 
