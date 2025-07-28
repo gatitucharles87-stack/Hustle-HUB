@@ -1,3 +1,4 @@
+
 'use server';
 
 import {
@@ -16,7 +17,16 @@ const jobPostFormSchema = z.object({
   category: z.string().min(1, 'Category is required.'),
   jobType: z.enum(['remote', 'local']),
   location: z.string().optional(),
+}).refine(data => {
+    if (data.jobType === 'local') {
+        return !!data.location && data.location.length > 0;
+    }
+    return true;
+}, {
+    message: 'Location is required for local jobs.',
+    path: ['location'],
 });
+
 
 const barterPostFormSchema = z.object({
   skillsToOffer: z.string().min(1, 'Skills to offer are required.'),
@@ -65,16 +75,6 @@ export async function generateJobPostAction(
       data: null,
     };
   }
-  
-  // Refine location validation based on job type
-  if (validatedFields.data.jobType === 'local' && !validatedFields.data.location) {
-      return {
-          message: 'Location is required for local jobs.',
-          errors: { location: ['Location is required for local jobs.'] },
-          data: null,
-      };
-  }
-
 
   try {
     const result = await generateJobPost({

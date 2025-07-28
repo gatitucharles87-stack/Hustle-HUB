@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useActionState, useEffect, useState } from 'react';
@@ -50,7 +51,7 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>;
 
-function SubmitButton() {
+function AIGenerateButton() {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" disabled={pending} variant="secondary">
@@ -88,7 +89,7 @@ export function JobPostForm() {
     if (state.message) {
       if(state.errors) {
         toast({
-          title: 'Error',
+          title: 'Error generating post',
           description: state.message,
           variant: 'destructive',
         });
@@ -215,7 +216,7 @@ export function JobPostForm() {
           />
         </div>
 
-        <SubmitButton />
+        <AIGenerateButton />
 
         <div className="space-y-4 pt-4 border-t">
           <h3 className="text-lg font-medium font-headline">Generated Job Post</h3>
