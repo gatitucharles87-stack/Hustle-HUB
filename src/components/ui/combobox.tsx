@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -59,8 +60,8 @@ export function Combobox({
       <PopoverContent className="w-full p-0" style={{width: "var(--radix-popover-trigger-width)"}}>
         <Command>
           <CommandInput placeholder={searchPlaceholder} />
-          <CommandEmpty>{emptyPlaceholder}</CommandEmpty>
           <CommandList>
+            <CommandEmpty>{emptyPlaceholder}</CommandEmpty>
             <CommandGroup>
                 {options.map((option) => (
                 <CommandItem
