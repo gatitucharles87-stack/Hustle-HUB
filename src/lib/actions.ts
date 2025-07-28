@@ -43,25 +43,18 @@ export async function generateJobPostAction(
   formData: FormData
 ): Promise<JobPostFormState> {
   const jobPostData = {
-    skills: formData.get('skills') as string,
-    experience: formData.get('experience') as string,
-    category: formData.get('category') as string,
-    jobType: formData.get('jobType') as string,
-    location: formData.get('location') as string,
+    skills: (formData.get('skills') as string) || '',
+    experience: (formData.get('experience') as string) || '',
+    category: (formData.get('category') as string) || '',
+    jobType: (formData.get('jobType') as string) || 'remote',
+    location: (formData.get('location') as string) || '',
   };
 
   if (jobPostData.jobType !== 'local') {
     jobPostData.location = 'Remote';
   }
-  
-  if (!jobPostData.skills || !jobPostData.experience || !jobPostData.category) {
-    return {
-      message: 'Invalid form data. Please fill out all required fields.',
-      errors: null,
-      data: null,
-    };
-  }
-  
+
+  // No more validation checks. Directly call the AI.
   try {
     const result = await generateJobPost({
       skills: jobPostData.skills,
@@ -121,3 +114,4 @@ export async function generateBarterPostAction(
     };
   }
 }
+
