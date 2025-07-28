@@ -42,26 +42,32 @@ export async function generateJobPostAction(
   prevState: JobPostFormState,
   formData: FormData
 ): Promise<JobPostFormState> {
-  const skills = formData.get('skills') as string;
-  const experience = formData.get('experience') as string;
-  const category = formData.get('category') as string;
-  const jobType = formData.get('jobType') as string;
-  const location = formData.get('location') as string;
+  const jobPostData = {
+    skills: formData.get('skills') as string,
+    experience: formData.get('experience') as string,
+    category: formData.get('category') as string,
+    jobType: formData.get('jobType') as string,
+    location: formData.get('location') as string,
+  };
 
-  if (!skills || !experience || !category || !jobType) {
+  if (jobPostData.jobType !== 'local') {
+    jobPostData.location = 'Remote';
+  }
+  
+  if (!jobPostData.skills || !jobPostData.experience || !jobPostData.category) {
     return {
       message: 'Invalid form data. Please fill out all required fields.',
       errors: null,
       data: null,
     };
   }
-
+  
   try {
     const result = await generateJobPost({
-      skills,
-      experience,
-      category,
-      location: jobType === 'local' ? location : 'Remote',
+      skills: jobPostData.skills,
+      experience: jobPostData.experience,
+      category: jobPostData.category,
+      location: jobPostData.location,
     });
     return {
       message: 'Job post generated successfully.',
