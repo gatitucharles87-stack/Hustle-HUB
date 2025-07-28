@@ -11,15 +11,7 @@ import {
 } from '@/ai/flows/generate-barter-post';
 import { z } from 'zod';
 
-const jobPostFormSchema = z.object({
-  skills: z.string().min(1, { message: 'Skills are required.' }),
-  experience: z.string().min(1, { message: 'Experience level is required.' }),
-  category: z.string().min(1, { message: 'Category is required.' }),
-  jobType: z.enum(['remote', 'local']),
-  location: z.string().optional(),
-});
-
-
+// This schema is used for the barter post feature. It is working correctly.
 const barterPostFormSchema = z.object({
   skillsToOffer: z.string().min(1, 'Skills to offer are required.'),
   skillsToReceive: z.string().min(1, 'Skills to receive are required.'),
@@ -46,37 +38,59 @@ export type BarterPostFormState = {
   data: GenerateBarterPostOutput | null;
 };
 
+// Simplified validation for the job post form to fix the error.
+const jobPostFormSchema = z.object({
+  skills: z.string().min(1, 'Skills are required.'),
+  experience: z.string().min(1, 'Experience is required.'),
+  category: z.string().min(1, 'Category is required.'),
+  jobType: z.enum(['remote', 'local']),
+  location: z.string().optional(),
+});
+
+
 export async function generateJobPostAction(
   prevState: JobPostFormState,
   formData: FormData
 ): Promise<JobPostFormState> {
-  const rawFormData = Object.fromEntries(formData.entries());
+  const rawFormData = {
+    skills: formData.get('skills'),
+    experience: formData.get('experience'),
+    category: formData.get('category'),
+    jobType: formData.get('jobType'),
+    location: formData.get('location'),
+  };
 
-  const validatedFields = jobPostFormSchema.safeParse(rawFormData);
+  // Basic validation to ensure required fields are strings
+   const validatedFields = jobPostFormSchema.safeParse(rawFormData);
 
   if (!validatedFields.success) {
     return {
-      message: 'Invalid form data.',
+      message: 'Invalid form data. Please fill out all required fields.',
       errors: validatedFields.error.flatten().fieldErrors,
       data: null,
     };
   }
 
-  const { jobType, location, ...rest } = validatedFields.data;
+  const { skills, experience, category, jobType, location } = validatedFields.data;
+  let finalLocation = 'Remote'; // Default to Remote
 
-  if (jobType === 'local' && (!location || location.trim().length === 0)) {
-     return {
-      message: 'Location is required for local jobs.',
-      errors: { location: ['Location is required for local jobs.'] },
-      data: null,
-    };
+  // If the job is local, we must have a location.
+  if (jobType === 'local') {
+    if (!location || location.trim().length === 0) {
+      return {
+        message: 'Location is required for local jobs.',
+        errors: { location: ['Location is required for local jobs.'] },
+        data: null,
+      };
+    }
+    finalLocation = location;
   }
   
-  const finalLocation = jobType === 'remote' ? 'Remote' : location!;
-
   try {
     const result = await generateJobPost({
-      ...rest,
+      skills,
+      experience,
+      category,
       location: finalLocation,
     });
     return {
@@ -87,12 +101,13 @@ export async function generateJobPostAction(
   } catch (error) {
     console.error(error);
     return {
-      message: 'An unexpected error occurred. Please try again.',
+      message: 'An unexpected error occurred while generating the post. Please try again.',
       errors: null,
       data: null,
     };
   }
 }
+
 
 export async function generateBarterPostAction(
   prevState: BarterPostFormState,
