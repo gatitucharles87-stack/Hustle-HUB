@@ -17,19 +17,7 @@ const jobPostFormSchema = z.object({
   category: z.string().min(1, { message: 'Category is required.' }),
   jobType: z.enum(['remote', 'local']),
   location: z.string().optional(),
-})
-.refine(
-  (data) => {
-    if (data.jobType === 'local') {
-      return !!data.location && data.location.trim().length > 0;
-    }
-    return true;
-  },
-  {
-    message: 'Location is required for local jobs.',
-    path: ['location'],
-  }
-);
+});
 
 
 const barterPostFormSchema = z.object({
@@ -74,10 +62,22 @@ export async function generateJobPostAction(
     };
   }
 
+  const { jobType, location, ...rest } = validatedFields.data;
+
+  if (jobType === 'local' && (!location || location.trim().length === 0)) {
+     return {
+      message: 'Location is required for local jobs.',
+      errors: { location: ['Location is required for local jobs.'] },
+      data: null,
+    };
+  }
+  
+  const finalLocation = jobType === 'remote' ? 'Remote' : location!;
+
   try {
     const result = await generateJobPost({
-        ...validatedFields.data,
-        location: validatedFields.data.jobType === 'remote' ? 'Remote' : validatedFields.data.location!,
+      ...rest,
+      location: finalLocation,
     });
     return {
       message: 'Job post generated successfully.',
