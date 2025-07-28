@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { PenSquare, Users, Briefcase, CheckCircle, Map, Star, Gift } from "lucide-react";
+import { PenSquare, Users, Briefcase, CheckCircle, Star, Gift } from "lucide-react";
 import Link from "next/link";
 import {
   Table,
@@ -77,7 +77,7 @@ export default function EmployerDashboardPage() {
         </Card>
       </div>
 
-       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+       <div className="grid grid-cols-1 gap-4">
         <Card>
           <CardHeader>
             <CardTitle className="font-headline">My Job Listings</CardTitle>
@@ -88,6 +88,7 @@ export default function EmployerDashboardPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Job Title</TableHead>
+                  <TableHead>Type</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Applicants</TableHead>
                   <TableHead>Actions</TableHead>
@@ -96,6 +97,7 @@ export default function EmployerDashboardPage() {
               <TableBody>
                 <TableRow>
                   <TableCell className="font-medium">Plumber for Leaky Faucet</TableCell>
+                  <TableCell><Badge variant="secondary">Local</Badge></TableCell>
                   <TableCell><Badge variant="outline">Open</Badge></TableCell>
                   <TableCell>12</TableCell>
                   <TableCell>
@@ -106,6 +108,7 @@ export default function EmployerDashboardPage() {
                 </TableRow>
                 <TableRow>
                   <TableCell className="font-medium">Frontend Developer (React)</TableCell>
+                   <TableCell><Badge variant="secondary">Remote</Badge></TableCell>
                   <TableCell><Badge>In Progress</Badge></TableCell>
                   <TableCell>1 (Selected)</TableCell>
                   <TableCell>
@@ -116,6 +119,7 @@ export default function EmployerDashboardPage() {
                 </TableRow>
                 <TableRow>
                   <TableCell className="font-medium">Graphic Designer for Logo</TableCell>
+                   <TableCell><Badge variant="secondary">Remote</Badge></TableCell>
                   <TableCell><Badge variant="destructive">Closed</Badge></TableCell>
                   <TableCell>25</TableCell>
                   <TableCell>
@@ -126,35 +130,6 @@ export default function EmployerDashboardPage() {
             </Table>
           </CardContent>
         </Card>
-
-        <div className="flex flex-col gap-4">
-          <Card>
-            <CardHeader>
-                <CardTitle className="font-headline flex items-center gap-2"><Map /> Find Freelancers Nearby</CardTitle>
-                <CardDescription>Use our map to discover and hire skilled freelancers in your area for immediate services.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <Button asChild>
-                    <Link href="/map">
-                        Open Map View
-                    </Link>
-                </Button>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-                <CardTitle className="font-headline flex items-center gap-2"><Gift /> Referrals & Loyalty</CardTitle>
-                <CardDescription>Earn loyalty points by referring new users to the platform.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <Button asChild>
-                    <Link href="/loyalty">
-                        Go to Loyalty Page
-                    </Link>
-                </Button>
-            </CardContent>
-          </Card>
-        </div>
       </div>
     </div>
   );

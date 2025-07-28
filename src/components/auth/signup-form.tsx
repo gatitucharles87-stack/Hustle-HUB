@@ -11,29 +11,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { UserPlus } from "lucide-react";
-import Link from "next/link";
-import { useState, useMemo } from "react";
-import { counties } from "@/lib/locations";
+import { UserPlus, Info } from "lucide-react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Switch } from "@/components/ui/switch";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export function SignupForm() {
     const [role, setRole] = useState("freelancer");
-    const [selectedCounty, setSelectedCounty] = useState('');
-    const [selectedSubCounty, setSelectedSubCounty] = useState('');
     const router = useRouter();
-
-    const subCounties = useMemo(() => {
-        if (!selectedCounty) return [];
-        const county = counties.find(c => c.name === selectedCounty);
-        return county ? county.sub_counties : [];
-    }, [selectedCounty]);
-
-    const areas = useMemo(() => {
-        if (!selectedSubCounty) return [];
-        const subCounty = subCounties.find(sc => sc.name === selectedSubCounty);
-        return subCounty ? subCounty.areas : [];
-    }, [selectedSubCounty, subCounties]);
 
     const handleSignup = () => {
         if (typeof window !== 'undefined') {
@@ -70,49 +56,41 @@ export function SignupForm() {
       </div>
         {role === 'freelancer' && (
             <>
-                <div className="grid gap-2">
-                    <Label htmlFor="county">County</Label>
-                    <Select onValueChange={setSelectedCounty}>
-                        <SelectTrigger id="county">
-                            <SelectValue placeholder="Select your county" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {counties.map(county => (
-                                <SelectItem key={county.name} value={county.name}>{county.name}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                <div className="grid gap-2 p-4 border rounded-lg">
+                    <Label>Availability Settings</Label>
+                    <div className="flex items-center justify-between">
+                        <Label htmlFor="remote-only" className="font-normal flex items-center gap-2">
+                            Do you offer remote services?
+                             <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Info className="h-4 w-4 text-muted-foreground" />
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Select if you can work on projects remotely.</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                        </Label>
+                        <Switch id="remote-only" />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="areas" className="flex items-center gap-2">
+                            Which local areas do you work in?
+                             <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Info className="h-4 w-4 text-muted-foreground" />
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Enter a comma-separated list of areas, e.g., Westlands, Embakasi.</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                        </Label>
+                        <Input id="areas" placeholder="e.g., Nairobi CBD, Rongai, Kasarani" />
+                    </div>
                 </div>
-                 {selectedCounty && (
-                    <div className="grid gap-2">
-                        <Label htmlFor="sub-county">Sub-county / Region</Label>
-                        <Select onValueChange={setSelectedSubCounty}>
-                            <SelectTrigger id="sub-county">
-                                <SelectValue placeholder="Select your sub-county" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {subCounties.map(sub => (
-                                    <SelectItem key={sub.name} value={sub.name}>{sub.name}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                 )}
-                 {selectedSubCounty && (
-                     <div className="grid gap-2">
-                        <Label htmlFor="area">Area</Label>
-                        <Select>
-                            <SelectTrigger id="area">
-                                <SelectValue placeholder="Select your specific area" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {areas.map(area => (
-                                    <SelectItem key={area} value={area}>{area}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                 )}
             </>
         )}
       <Button type="submit" className="w-full" onClick={handleSignup}>

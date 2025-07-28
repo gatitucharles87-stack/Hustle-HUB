@@ -14,7 +14,6 @@ import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
   Briefcase,
-  Map,
   PenSquare,
   Settings,
   LogOut,
@@ -36,7 +35,6 @@ const employerMenuItems = [
   { href: '/dashboard/employer', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/hire', label: 'Hire Freelancers', icon: UserSearch },
   { href: '/dashboard/post-job', label: 'Post a Job', icon: PenSquare },
-  { href: '/map', label: 'Map View', icon: Map },
   { href: '/loyalty', label: 'Loyalty', icon: Star },
 ];
 

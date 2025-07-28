@@ -6,12 +6,12 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Briefcase, MapPin, Search } from "lucide-react";
-import { LocationSelector } from "@/components/location-selector";
 
 const jobListings = [
   {
     title: "Urgent: Fix Leaky Kitchen Sink",
     category: "Home Services",
+    type: "Local",
     location: "Nairobi, Kenya",
     tags: ["Urgent", "Plumbing"],
     description: "Water is dripping from under the sink. Need an experienced plumber to fix it today.",
@@ -19,6 +19,7 @@ const jobListings = [
   {
     title: "Build a Responsive React Landing Page",
     category: "Tech",
+    type: "Remote",
     location: "Remote",
     tags: ["React", "Web Development"],
     description: "Looking for a skilled frontend developer to create a modern and fast landing page for our new product.",
@@ -26,6 +27,7 @@ const jobListings = [
   {
     title: "Professional Headshots for Corporate Team",
     category: "Photography",
+    type: "Local",
     location: "Mombasa, Kenya",
     tags: ["Photography", "Corporate"],
     description: "We need a photographer for a team of 15 people. Must have a portfolio.",
@@ -33,6 +35,7 @@ const jobListings = [
     {
     title: "Design a new Logo for a Startup",
     category: "Design",
+    type: "Remote",
     location: "Remote",
     tags: ["Logo Design", "Branding"],
     description: "We are a new tech startup and need a modern and memorable logo.",
@@ -51,8 +54,21 @@ export default function JobsPage() {
           </CardHeader>
           <CardContent className="space-y-4">
              <div className="space-y-2">
-                <Label htmlFor="search-keywords">Keywords</Label>
-                <Input id="search-keywords" placeholder="e.g., 'React' or 'Plumber'" />
+                <Label htmlFor="search-area">Area or Neighborhood</Label>
+                <Input id="search-area" placeholder="e.g., 'South B' or 'Utawala'" />
+            </div>
+             <div className="space-y-2">
+                <Label htmlFor="search-job-type">Job Type</Label>
+                <Select>
+                    <SelectTrigger id="search-job-type">
+                        <SelectValue placeholder="All Types" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Types</SelectItem>
+                        <SelectItem value="local">Local</SelectItem>
+                        <SelectItem value="remote">Remote</SelectItem>
+                    </SelectContent>
+                </Select>
             </div>
              <div className="space-y-2">
                 <Label htmlFor="search-category">Category</Label>
@@ -71,10 +87,6 @@ export default function JobsPage() {
                     </SelectContent>
                 </Select>
             </div>
-            <div className="space-y-4">
-                <Label>Location</Label>
-                <LocationSelector />
-            </div>
           </CardContent>
           <CardFooter>
             <Button className="w-full">Apply Filters</Button>
@@ -89,7 +101,12 @@ export default function JobsPage() {
           {jobListings.map((job, index) => (
             <Card key={index}>
               <CardHeader>
-                <CardTitle>{job.title}</CardTitle>
+                <div className="flex justify-between items-start">
+                    <CardTitle>{job.title}</CardTitle>
+                    <Badge variant={job.type === 'Local' ? 'outline' : 'default'}>
+                        {job.type}
+                    </Badge>
+                </div>
                 <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <div className="flex items-center gap-1">
                         <Briefcase className="h-4 w-4" />

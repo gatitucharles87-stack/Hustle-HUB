@@ -6,6 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { counties } from "@/lib/locations";
 
+// This component is not currently in use and may be deprecated or repurposed.
+// The new logic uses text-based area filtering instead of dropdowns.
 export function LocationSelector() {
     const [selectedCounty, setSelectedCounty] = useState('');
     const [selectedSubCounty, setSelectedSubCounty] = useState('');

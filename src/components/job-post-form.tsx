@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useEffect } from 'react';
+import { useActionState, useEffect, useState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -26,15 +27,26 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { Wand2, Loader2, Send } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 const formSchema = z.object({
   skills: z.string().min(1, 'Skills are required.'),
   experience: z.string().min(1, 'Experience level is required.'),
-  location: z.string().min(1, 'Location is required.'),
   category: z.string().min(1, 'Category is required.'),
+  jobType: z.enum(['remote', 'local']),
+  location: z.string().optional(),
   title: z.string().optional(),
   description: z.string().optional(),
+}).refine(data => {
+    if (data.jobType === 'local') {
+        return !!data.location && data.location.length > 0;
+    }
+    return true;
+}, {
+    message: 'Location is required for local jobs.',
+    path: ['location'],
 });
+
 
 type FormData = z.infer<typeof formSchema>;
 
@@ -64,10 +76,13 @@ export function JobPostForm() {
       experience: '',
       location: '',
       category: '',
+      jobType: 'remote',
       title: '',
       description: '',
     },
   });
+
+  const jobType = form.watch('jobType');
 
   useEffect(() => {
     if (state.message) {
@@ -93,6 +108,52 @@ export function JobPostForm() {
     <Form {...form}>
       <form action={formAction} className="space-y-8">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+            <FormField
+                control={form.control}
+                name="jobType"
+                render={({ field }) => (
+                <FormItem className="space-y-3">
+                    <FormLabel>Job Type</FormLabel>
+                    <FormControl>
+                    <RadioGroup
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        className="flex flex-col space-y-1"
+                    >
+                        <FormItem className="flex items-center space-x-3 space-y-0">
+                        <FormControl>
+                            <RadioGroupItem value="remote" />
+                        </FormControl>
+                        <FormLabel className="font-normal">Remote</FormLabel>
+                        </FormItem>
+                        <FormItem className="flex items-center space-x-3 space-y-0">
+                        <FormControl>
+                            <RadioGroupItem value="local" />
+                        </FormControl>
+                        <FormLabel className="font-normal">Local</FormLabel>
+                        </FormItem>
+                    </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                </FormItem>
+                )}
+            />
+          {jobType === 'local' && (
+            <FormField
+                control={form.control}
+                name="location"
+                render={({ field }) => (
+                <FormItem>
+                    <FormLabel>Job Location</FormLabel>
+                    <FormControl>
+                    <Input placeholder="e.g., Utawala, Nairobi" {...field} />
+                    </FormControl>
+                    <FormDescription>Required for local jobs.</FormDescription>
+                    <FormMessage />
+                </FormItem>
+                )}
+            />
+          )}
           <FormField
             control={form.control}
             name="skills"
@@ -101,19 +162,6 @@ export function JobPostForm() {
                 <FormLabel>Required Skills</FormLabel>
                 <FormControl>
                   <Input placeholder="e.g., React, Next.js, Plumbing" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="location"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Location</FormLabel>
-                <FormControl>
-                  <Input placeholder="e.g., Nairobi, Kenya" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

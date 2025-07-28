@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
-import { LocationSelector } from "@/components/location-selector";
+import { Switch } from "@/components/ui/switch";
 
 export default function ProfilePage() {
   return (
@@ -55,14 +55,24 @@ export default function ProfilePage() {
 
       <Card>
         <CardHeader>
-            <CardTitle>Service Location</CardTitle>
-            <CardDescription>Set the primary location where you are available for work.</CardDescription>
+            <CardTitle>Availability & Service Areas</CardTitle>
+            <CardDescription>Set your work availability and the local areas you serve.</CardDescription>
         </CardHeader>
-        <CardContent>
-            <LocationSelector />
+        <CardContent className="space-y-4">
+            <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div>
+                <Label htmlFor="remote-available" className="font-medium">Available for Remote Work</Label>
+                <p className="text-sm text-muted-foreground">Can you work on projects without being on-site?</p>
+                </div>
+                <Switch id="remote-available" defaultChecked />
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="service-areas">Service Areas</Label>
+                <Textarea id="service-areas" placeholder="Enter a comma-separated list of areas you serve, e.g., Westlands, Embakasi, South B" rows={3} defaultValue="Nairobi CBD, Rongai, Kasarani" />
+            </div>
         </CardContent>
          <CardFooter>
-            <Button>Update Location</Button>
+            <Button>Update Availability</Button>
         </CardFooter>
       </Card>
       

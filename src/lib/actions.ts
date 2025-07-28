@@ -13,8 +13,9 @@ import { z } from 'zod';
 const jobPostFormSchema = z.object({
   skills: z.string().min(1, 'Skills are required.'),
   experience: z.string().min(1, 'Experience level is required.'),
-  location: z.string().min(1, 'Location is required.'),
   category: z.string().min(1, 'Category is required.'),
+  jobType: z.enum(['remote', 'local']),
+  location: z.string().optional(),
 });
 
 const barterPostFormSchema = z.object({
@@ -29,6 +30,7 @@ export type JobPostFormState = {
     experience?: string[];
     location?: string[];
     category?: string[];
+    jobType?: string[];
   } | null;
   data: GenerateJobPostOutput | null;
 };
@@ -49,8 +51,9 @@ export async function generateJobPostAction(
   const rawFormData = {
     skills: formData.get('skills'),
     experience: formData.get('experience'),
-    location: formData.get('location'),
+    location: formData.get('location') || '',
     category: formData.get('category'),
+    jobType: formData.get('jobType'),
   };
 
   const validatedFields = jobPostFormSchema.safeParse(rawFormData);
@@ -62,9 +65,22 @@ export async function generateJobPostAction(
       data: null,
     };
   }
+  
+  // Refine location validation based on job type
+  if (validatedFields.data.jobType === 'local' && !validatedFields.data.location) {
+      return {
+          message: 'Location is required for local jobs.',
+          errors: { location: ['Location is required for local jobs.'] },
+          data: null,
+      };
+  }
+
 
   try {
-    const result = await generateJobPost(validatedFields.data);
+    const result = await generateJobPost({
+        ...validatedFields.data,
+        location: validatedFields.data.jobType === 'remote' ? 'Remote' : validatedFields.data.location!,
+    });
     return {
       message: 'Job post generated successfully.',
       errors: null,
