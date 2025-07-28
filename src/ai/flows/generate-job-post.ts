@@ -37,7 +37,9 @@ const prompt = ai.definePrompt({
   name: 'generateJobPostPrompt',
   input: {schema: GenerateJobPostInputSchema},
   output: {schema: GenerateJobPostOutputSchema},
-  prompt: `You are an expert job post writer. Based on the provided information, generate a compelling job post title and a detailed description.
+  prompt: `You are an expert job post writer. Based on the provided information, generate a compelling job post title and a detailed job description.
+
+The job description should be clean, professional, and ready to be published. Do not use markdown formatting like asterisks or bolding for headings (e.g., avoid writing "**Responsibilities:**"). Instead, write a flowing text with natural paragraph breaks.
 
 Skills: {{{skills}}}
 Experience: {{{experience}}}
