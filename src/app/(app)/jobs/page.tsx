@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Briefcase, MapPin, Search } from "lucide-react";
+import { LocationSelector } from "@/components/location-selector";
 
 const jobListings = [
   {
@@ -45,64 +46,56 @@ const jobListings = [
 
 export default function JobsPage() {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-      <div className="md:col-span-1">
-        <Card>
-          <CardHeader>
-            <CardTitle className="font-headline flex items-center gap-2"><Search /> Filter Jobs</CardTitle>
-            <CardDescription>Refine your search to find the perfect gig.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-             <div className="space-y-2">
-                <Label htmlFor="search-area">Area or Neighborhood</Label>
-                <Input id="search-area" placeholder="e.g., 'South B' or 'Utawala'" />
-            </div>
-             <div className="space-y-2">
-                <Label htmlFor="search-job-type">Job Type</Label>
-                <Select>
-                    <SelectTrigger id="search-job-type">
-                        <SelectValue placeholder="All Types" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">All Types</SelectItem>
-                        <SelectItem value="local">Local</SelectItem>
-                        <SelectItem value="remote">Remote</SelectItem>
-                    </SelectContent>
-                </Select>
-            </div>
-             <div className="space-y-2">
-                <Label htmlFor="search-category">Category</Label>
-                <Select>
-                    <SelectTrigger id="search-category">
-                        <SelectValue placeholder="All Categories" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">All Categories</SelectItem>
-                        <SelectItem value="tech">Tech</SelectItem>
-                        <SelectItem value="home-services">Home Services</SelectItem>
-                        <SelectItem value="design">Design</SelectItem>
-                        <SelectItem value="writing">Writing</SelectItem>
-                        <SelectItem value="beauty">Beauty</SelectItem>
-                        <SelectItem value="photography">Photography</SelectItem>
-                    </SelectContent>
-                </Select>
-            </div>
-          </CardContent>
-          <CardFooter>
-            <Button className="w-full">Apply Filters</Button>
-          </CardFooter>
-        </Card>
-      </div>
-      <div className="md:col-span-3">
+    <div className="flex flex-col gap-8">
+      <Card>
+        <CardHeader>
+          <CardTitle className="font-headline flex items-center gap-2"><Search /> Find a Job</CardTitle>
+          <CardDescription>Refine your search to find the perfect gig.</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                  <Label htmlFor="search-keywords">Keywords or Skills</Label>
+                  <Input id="search-keywords" placeholder="e.g., 'React' or 'Plumber'" />
+              </div>
+              <div className="space-y-2">
+                  <Label htmlFor="search-category">Category</Label>
+                  <Select>
+                      <SelectTrigger id="search-category">
+                          <SelectValue placeholder="All Categories" />
+                      </SelectTrigger>
+                      <SelectContent>
+                          <SelectItem value="all">All Categories</SelectItem>
+                          <SelectItem value="tech">Tech</SelectItem>
+                          <SelectItem value="home-services">Home Services</SelectItem>
+                          <SelectItem value="design">Design</SelectItem>
+                          <SelectItem value="writing">Writing</SelectItem>
+                          <SelectItem value="beauty">Beauty</SelectItem>
+                          <SelectItem value="photography">Photography</SelectItem>
+                      </SelectContent>
+                  </Select>
+              </div>
+           </div>
+           <LocationSelector />
+        </CardContent>
+        <CardFooter>
+          <Button className="w-full">
+              <Search className="mr-2 h-4 w-4" />
+              Search Jobs
+          </Button>
+        </CardFooter>
+      </Card>
+      
+      <div>
         <h1 className="text-3xl font-bold tracking-tight font-headline mb-6">
           Available Jobs ({jobListings.length})
         </h1>
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {jobListings.map((job, index) => (
             <Card key={index}>
               <CardHeader>
                 <div className="flex justify-between items-start">
-                    <CardTitle>{job.title}</CardTitle>
+                    <CardTitle className="text-lg">{job.title}</CardTitle>
                     <Badge variant={job.type === 'Local' ? 'outline' : 'default'}>
                         {job.type}
                     </Badge>
@@ -119,7 +112,7 @@ export default function JobsPage() {
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="mb-4">{job.description}</p>
+                <p className="text-muted-foreground text-sm mb-4">{job.description}</p>
                 <div className="flex gap-2">
                   {job.tags.map(tag => <Badge key={tag} variant="secondary">{tag}</Badge>)}
                 </div>
