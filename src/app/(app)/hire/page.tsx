@@ -6,7 +6,6 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Star, MapPin, Search, UserSearch } from "lucide-react";
-import { LocationSelector } from "@/components/location-selector";
 import Link from "next/link";
 
 const freelancers = [
@@ -76,9 +75,9 @@ export default function HirePage() {
                     </SelectContent>
                 </Select>
             </div>
-            <div className="space-y-4">
-                <Label>Location</Label>
-                <LocationSelector />
+            <div className="space-y-2">
+                <Label htmlFor="search-area">Area or Neighborhood</Label>
+                <Input id="search-area" placeholder="e.g., 'South B' or 'Utawala'" />
             </div>
           </CardContent>
           <CardFooter>
@@ -97,12 +96,12 @@ export default function HirePage() {
           {freelancers.map((freelancer, index) => (
             <Card key={index} className="flex flex-col">
               <CardHeader className="items-center text-center">
-                 <Avatar className="w-24 h-24 mb-4">
+                 <Avatar className="w-20 h-20 mb-4">
                     <AvatarImage src={freelancer.avatar} alt={freelancer.name} data-ai-hint={freelancer.dataAiHint} />
                     <AvatarFallback>{freelancer.name.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <CardTitle>{freelancer.name}</CardTitle>
-                <CardDescription>{freelancer.specialty}</CardDescription>
+                <CardDescription className="text-sm">{freelancer.specialty}</CardDescription>
               </CardHeader>
               <CardContent className="flex-grow">
                 <div className="flex items-center justify-center gap-1 text-sm text-muted-foreground mb-4">
@@ -115,10 +114,10 @@ export default function HirePage() {
                 </div>
               </CardContent>
               <CardFooter className="flex flex-col sm:flex-row gap-2">
-                <Button variant="outline" className="w-full" asChild>
+                <Button variant="outline" className="w-full sm:w-auto flex-1" asChild>
                     <Link href="/profile">View Profile</Link>
                 </Button>
-                <Button className="w-full">Hire Now</Button>
+                <Button className="w-full sm:w-auto flex-1">Hire Now</Button>
               </CardFooter>
             </Card>
           ))}
