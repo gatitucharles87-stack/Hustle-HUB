@@ -48,6 +48,14 @@ export async function generateJobPostAction(
   const jobType = formData.get('jobType') as string;
   const location = formData.get('location') as string;
 
+  if (!skills || !experience || !category || !jobType) {
+    return {
+      message: 'Invalid form data. Please fill out all required fields.',
+      errors: null,
+      data: null,
+    };
+  }
+
   try {
     const result = await generateJobPost({
       skills,

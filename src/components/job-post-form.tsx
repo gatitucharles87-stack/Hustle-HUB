@@ -87,7 +87,7 @@ export function JobPostForm() {
 
   useEffect(() => {
     if (state.message) {
-      if(state.errors) {
+      if(state.errors || (state.message && !state.data)) {
         toast({
           title: 'Error generating post',
           description: state.message,
@@ -117,7 +117,13 @@ export function JobPostForm() {
                     <FormLabel>Job Type</FormLabel>
                     <FormControl>
                     <RadioGroup
-                        onValueChange={field.onChange}
+                        onValueChange={(value) => {
+                            field.onChange(value);
+                            if (value === 'remote') {
+                                form.setValue('location', '');
+                                form.clearErrors('location');
+                            }
+                        }}
                         defaultValue={field.value}
                         className="flex flex-col space-y-1"
                     >
