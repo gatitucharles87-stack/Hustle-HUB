@@ -37,13 +37,13 @@ const prompt = ai.definePrompt({
   name: 'generateJobPostPrompt',
   input: {schema: GenerateJobPostInputSchema},
   output: {schema: GenerateJobPostOutputSchema},
-  prompt: `You are an expert recruiter creating a compelling but concise job post. Based on the provided information, generate an engaging job title and a short, smart summary of the job.
+  prompt: `You are an expert recruiter creating a compelling and detailed job post. Based on the provided information, generate an engaging job title and a comprehensive job description.
 
-The summary should be clean, professional, and easy for a freelancer to read quickly. It should not be a long, formal document.
-- Start with a brief, engaging overview of the role.
-- Clearly state the 2-3 most important responsibilities.
-- List the essential skills or qualifications required.
-- Do not use markdown formatting like asterisks, colons, or separate "sections" (e.g., "**Responsibilities:**"). Write it as a flowing text with natural paragraph breaks.
+The job description should be structured, clean, and professional, making it easy for a freelancer to understand the role thoroughly.
+- Start with a brief, engaging overview of the role (Job Summary).
+- Create a "Responsibilities" section with a bulleted list of key duties.
+- Create a "Qualifications" section with a bulleted list of essential skills and experience.
+- Use clear headings for each section (e.g., "Responsibilities:", "Qualifications:"). Do not use markdown like asterisks. Write it as a flowing text with natural paragraph breaks and bullet points where appropriate.
 - Avoid corporate jargon and boilerplate language.
 
 Skills: {{{skills}}}
@@ -51,7 +51,7 @@ Experience: {{{experience}}}
 Location: {{{location}}}
 Category: {{{category}}}
 
-Please generate a compelling title and a concise job description summary based on these details.`,
+Please generate a compelling title and a detailed job description based on these details.`,
 });
 
 const generateJobPostFlow = ai.defineFlow(
