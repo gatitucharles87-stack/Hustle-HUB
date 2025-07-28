@@ -11,7 +11,6 @@ import {
 } from '@/ai/flows/generate-barter-post';
 import { z } from 'zod';
 
-// This schema is used for the barter post feature. It is working correctly.
 const barterPostFormSchema = z.object({
   skillsToOffer: z.string().min(1, 'Skills to offer are required.'),
   skillsToReceive: z.string().min(1, 'Skills to receive are required.'),
@@ -47,40 +46,14 @@ export async function generateJobPostAction(
   const experience = formData.get('experience') as string;
   const category = formData.get('category') as string;
   const jobType = formData.get('jobType') as string;
-  const location = formData.get('location') as string | null;
+  const location = formData.get('location') as string;
 
-  // Basic check for required fields from the form
-  if (!skills || !experience || !category || !jobType) {
-    return {
-      message: 'Invalid form data. Please fill out all required fields.',
-      errors: {
-        skills: !skills ? ['Skills are required.'] : undefined,
-        experience: !experience ? ['Experience is required.'] : undefined,
-        category: !category ? ['Category is required.'] : undefined,
-        jobType: !jobType ? ['Job type is required.'] : undefined,
-      },
-      data: null,
-    };
-  }
-  
-  let finalLocation = 'Remote';
-  if (jobType === 'local') {
-    if (!location || location.trim() === '') {
-       return {
-        message: 'Location is required for local jobs.',
-        errors: { location: ['Location is required for local jobs.'] },
-        data: null,
-      };
-    }
-    finalLocation = location;
-  }
-  
   try {
     const result = await generateJobPost({
       skills,
       experience,
       category,
-      location: finalLocation,
+      location: jobType === 'local' ? location : 'Remote',
     });
     return {
       message: 'Job post generated successfully.',
@@ -134,4 +107,3 @@ export async function generateBarterPostAction(
     };
   }
 }
-
