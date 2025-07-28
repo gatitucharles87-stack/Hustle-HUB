@@ -49,14 +49,20 @@ export async function generateJobPostAction(
   const jobType = formData.get('jobType') as string;
   const location = formData.get('location') as string | null;
 
+  // Basic check for required fields from the form
   if (!skills || !experience || !category || !jobType) {
     return {
       message: 'Invalid form data. Please fill out all required fields.',
-      errors: null,
+      errors: {
+        skills: !skills ? ['Skills are required.'] : undefined,
+        experience: !experience ? ['Experience is required.'] : undefined,
+        category: !category ? ['Category is required.'] : undefined,
+        jobType: !jobType ? ['Job type is required.'] : undefined,
+      },
       data: null,
     };
   }
-
+  
   let finalLocation = 'Remote';
   if (jobType === 'local') {
     if (!location || location.trim() === '') {
@@ -83,8 +89,9 @@ export async function generateJobPostAction(
     };
   } catch (error) {
     console.error(error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
     return {
-      message: 'An unexpected error occurred while generating the post. Please try again.',
+      message: `An unexpected error occurred while generating the post: ${errorMessage}`,
       errors: null,
       data: null,
     };
@@ -127,3 +134,4 @@ export async function generateBarterPostAction(
     };
   }
 }
+
