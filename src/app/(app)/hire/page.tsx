@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Star, MapPin, Search, UserSearch } from "lucide-react";
 import Link from "next/link";
+import { LocationSelector } from "@/components/location-selector";
 
 const freelancers = [
   {
@@ -52,35 +53,34 @@ export default function HirePage() {
           <CardTitle className="font-headline flex items-center gap-2"><UserSearch /> Find a Freelancer</CardTitle>
           <CardDescription>Refine your search to find the perfect professional.</CardDescription>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
-           <div className="space-y-2">
-              <Label htmlFor="search-keywords">Keywords or Skills</Label>
-              <Input id="search-keywords" placeholder="e.g., 'React' or 'Plumber'" />
-          </div>
-           <div className="space-y-2">
-              <Label htmlFor="search-category">Category</Label>
-              <Select>
-                  <SelectTrigger id="search-category">
-                      <SelectValue placeholder="All Categories" />
-                  </SelectTrigger>
-                  <SelectContent>
-                      <SelectItem value="all">All Categories</SelectItem>
-                      <SelectItem value="tech">Tech</SelectItem>
-                      <SelectItem value="home-services">Home Services</SelectItem>
-                      <SelectItem value="design">Design</SelectItem>
-                      <SelectItem value="writing">Writing</SelectItem>
-                      <SelectItem value="beauty">Beauty</SelectItem>
-                      <SelectItem value="photography">Photography</SelectItem>
-                  </SelectContent>
-              </Select>
-          </div>
-          <div className="space-y-2">
-              <Label htmlFor="search-area">Area or Neighborhood</Label>
-              <Input id="search-area" placeholder="e.g., 'South B' or 'Utawala'" />
-          </div>
+        <CardContent className="flex flex-col gap-4">
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                  <Label htmlFor="search-keywords">Keywords or Skills</Label>
+                  <Input id="search-keywords" placeholder="e.g., 'React' or 'Plumber'" />
+              </div>
+              <div className="space-y-2">
+                  <Label htmlFor="search-category">Category</Label>
+                  <Select>
+                      <SelectTrigger id="search-category">
+                          <SelectValue placeholder="All Categories" />
+                      </SelectTrigger>
+                      <SelectContent>
+                          <SelectItem value="all">All Categories</SelectItem>
+                          <SelectItem value="tech">Tech</SelectItem>
+                          <SelectItem value="home-services">Home Services</SelectItem>
+                          <SelectItem value="design">Design</SelectItem>
+                          <SelectItem value="writing">Writing</SelectItem>
+                          <SelectItem value="beauty">Beauty</SelectItem>
+                          <SelectItem value="photography">Photography</SelectItem>
+                      </SelectContent>
+                  </Select>
+              </div>
+           </div>
+           <LocationSelector />
         </CardContent>
         <CardFooter>
-          <Button className="w-full md:w-auto">
+          <Button className="w-full">
               <Search className="mr-2 h-4 w-4" />
               Search Freelancers
           </Button>
