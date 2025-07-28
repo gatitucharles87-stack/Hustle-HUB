@@ -3,65 +3,76 @@
 
 import { useMemo, useState } from "react";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { counties } from "@/lib/locations";
+import { Combobox } from "@/components/ui/combobox";
 
 export function LocationSelector() {
     const [selectedCounty, setSelectedCounty] = useState('');
     const [selectedSubCounty, setSelectedSubCounty] = useState('');
+    const [selectedArea, setSelectedArea] = useState('');
 
-    const subCounties = useMemo(() => {
+    const countyOptions = useMemo(() => counties.map(c => ({ label: c.name, value: c.name })), []);
+
+    const subCountyOptions = useMemo(() => {
         if (!selectedCounty) return [];
         const county = counties.find(c => c.name === selectedCounty);
-        return county ? county.sub_counties : [];
+        return county ? county.sub_counties.map(sc => ({ label: sc.name, value: sc.name })) : [];
     }, [selectedCounty]);
 
-    const areas = useMemo(() => {
+    const areaOptions = useMemo(() => {
         if (!selectedSubCounty) return [];
-        const subCounty = subCounties.find(sc => sc.name === selectedSubCounty);
-        return subCounty ? subCounty.areas : [];
-    }, [selectedSubCounty, subCounties]);
+        const county = counties.find(c => c.name === selectedCounty);
+        const subCounty = county?.sub_counties.find(sc => sc.name === selectedSubCounty);
+        return subCounty ? subCounty.areas.map(a => ({ label: a, value: a })) : [];
+    }, [selectedCounty, selectedSubCounty]);
+
+    const handleCountyChange = (value: string) => {
+        setSelectedCounty(value);
+        setSelectedSubCounty('');
+        setSelectedArea('');
+    }
+
+    const handleSubCountyChange = (value: string) => {
+        setSelectedSubCounty(value);
+        setSelectedArea('');
+    }
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
                 <Label htmlFor="county-selector">County</Label>
-                <Select onValueChange={setSelectedCounty}>
-                    <SelectTrigger id="county-selector">
-                        <SelectValue placeholder="Select County" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {counties.map(county => (
-                            <SelectItem key={county.name} value={county.name}>{county.name}</SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
+                <Combobox
+                    options={countyOptions}
+                    value={selectedCounty}
+                    onChange={handleCountyChange}
+                    placeholder="Select County"
+                    searchPlaceholder="Search county..."
+                    emptyPlaceholder="No county found."
+                />
             </div>
             <div className="space-y-2">
                 <Label htmlFor="subcounty-selector">Sub-county</Label>
-                <Select onValueChange={setSelectedSubCounty} disabled={!selectedCounty}>
-                    <SelectTrigger id="subcounty-selector">
-                        <SelectValue placeholder="Select Sub-county" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {subCounties.map(sub => (
-                            <SelectItem key={sub.name} value={sub.name}>{sub.name}</SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
+                 <Combobox
+                    options={subCountyOptions}
+                    value={selectedSubCounty}
+                    onChange={handleSubCountyChange}
+                    placeholder="Select Sub-county"
+                    searchPlaceholder="Search sub-county..."
+                    emptyPlaceholder="No sub-county found."
+                    disabled={!selectedCounty}
+                />
             </div>
             <div className="space-y-2">
                 <Label htmlFor="area-selector">Area</Label>
-                <Select disabled={!selectedSubCounty}>
-                    <SelectTrigger id="area-selector">
-                        <SelectValue placeholder="Select Area" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {areas.map(area => (
-                            <SelectItem key={area} value={area}>{area}</SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
+                <Combobox
+                    options={areaOptions}
+                    value={selectedArea}
+                    onChange={setSelectedArea}
+                    placeholder="Select Area"
+                    searchPlaceholder="Search area..."
+                    emptyPlaceholder="No area found."
+                    disabled={!selectedSubCounty}
+                />
             </div>
         </div>
     )
