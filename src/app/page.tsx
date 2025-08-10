@@ -1,10 +1,10 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Briefcase, Handshake, Repeat, Star } from 'lucide-react';
+import { ArrowRight, Briefcase, Handshake, Repeat } from 'lucide-react';
 import { PublicHeader } from '@/components/layout/public-header';
 import Image from 'next/image';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Card, CardContent } from '@/components/ui/card';
+import { ReviewSection } from '@/components/review-section';
+import { TypingText } from '@/components/typing-text'; // Import the new TypingText component
 
 const features = [
   {
@@ -30,61 +30,57 @@ const features = [
   },
 ];
 
-const testimonials = [
-  {
-    name: "Aisha Mwangi",
-    role: "Freelance Developer",
-    avatar: "https://placehold.co/100x100.png",
-    dataAiHint: "woman developer",
-    quote: "HustleHub has been a game-changer for my freelance career. I've found incredible projects and the Skill Barter feature is pure genius!",
-  },
-  {
-    name: "David Chen",
-    role: "Small Business Owner",
-    avatar: "https://placehold.co/100x100.png",
-    dataAiHint: "man business",
-    quote: "Finding a reliable plumber for my cafe used to be a nightmare. With HustleHub, I hired a local professional in under an hour. Highly recommended!",
-  },
-];
-
-
 export default function HomePage() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <PublicHeader />
       <main className="flex-1">
-        {/* Hero Section */}
-        <section className="w-full py-20 md:py-32 lg:py-40 bg-muted/50">
-          <div className="container px-4 md:px-6">
-            <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 xl:gap-24 items-center">
-              <div className="flex flex-col justify-center space-y-4">
-                <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl font-headline">
-                  Your Next Opportunity is Here.
+        {/* Hero Section - Improved */}
+        <section className="relative w-full py-20 md:py-32 lg:py-40 overflow-hidden bg-gray-950">
+          {/* Subtle background gradient for visual interest, using brand colors */}
+          <div className="absolute inset-0 z-0 opacity-20"
+               style={{
+                 backgroundImage: 'radial-gradient(at 20% 50%, #3498DB40, transparent 50%), radial-gradient(at 80% 80%, #6A0DAD40, transparent 50%)'
+               }}
+          ></div>
+
+          <div className="container px-4 md:px-6 relative z-10">
+            <div className="grid gap-12 lg:grid-cols-2 lg:gap-24 xl:gap-32 items-center">
+              {/* Text Content */}
+              <div className="flex flex-col justify-center space-y-6">
+                <h1 className="text-5xl font-extrabold tracking-tighter sm:text-6xl md:text-7xl font-headline text-white leading-tight">
+                  Unlock Your Potential. <br className="hidden sm:inline" />
+                  <span className="inline-block bg-gradient-to-r from-blue-500 to-purple-600 text-transparent bg-clip-text">
+                    <TypingText words={["Find Work.", "Hire Talent."]} />
+                  </span>
                 </h1>
-                <p className="max-w-[600px] text-muted-foreground md:text-xl">
-                  HustleHub connects you with a vibrant community of skilled freelancers and innovative employers. Stop searching, start doing.
+                <p className="max-w-[700px] text-lg text-gray-300 md:text-xl leading-relaxed">
+                  HustleHub connects ambitious freelancers with visionary employers. Build your legacy, find your next project, or assemble your dream team – all in one dynamic marketplace.
                 </p>
-                <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                  <Button asChild size="lg">
+                <div className="flex flex-col gap-4 min-[400px]:flex-row">
+                  <Button asChild size="lg" className="px-8 py-3 text-lg font-semibold bg-primary hover:bg-primary/90 transition-colors duration-300">
                     <Link href="/signup">
-                      Find Work <ArrowRight className="ml-2 h-5 w-5" />
+                      Get Started as a Freelancer <ArrowRight className="ml-2 h-5 w-5" />
                     </Link>
                   </Button>
-                  <Button asChild size="lg" variant="secondary">
+                  <Button asChild size="lg" variant="secondary" className="px-8 py-3 text-lg font-semibold bg-secondary hover:bg-secondary/90 transition-colors duration-300">
                     <Link href="/signup">
-                      Hire Talent <ArrowRight className="ml-2 h-5 w-5" />
+                      Post a Job Today <ArrowRight className="ml-2 h-5 w-5" />
                     </Link>
                   </Button>
                 </div>
               </div>
-              <Image
-                src="https://placehold.co/600x400.png"
-                width="600"
-                height="400"
-                alt="Hero"
-                data-ai-hint="collaboration team"
-                className="mx-auto aspect-video overflow-hidden rounded-xl object-cover sm:w-full"
-              />
+              {/* Image with subtle hover effect */}
+              <div className="relative">
+                <Image
+                  src="https://images.unsplash.com/photo-1556761175-5973dc0f32e7?q=80&w=2832&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                  width={700}
+                  height={500}
+                  alt="A dynamic and collaborative workspace"
+                  data-ai-hint="team collaborating on project, abstract representation of productivity"
+                  className="mx-auto overflow-hidden rounded-xl object-cover shadow-2xl transition-transform duration-500 ease-in-out hover:scale-105"
+                />
+              </div>
             </div>
           </div>
         </section>
@@ -96,7 +92,7 @@ export default function HomePage() {
               <div className="inline-block rounded-lg bg-muted px-3 py-1 text-sm">Key Features</div>
               <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline">
                 Everything You Need to Succeed
-              </h2>
+              </h2 >
               <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
                 Whether you're looking for work or searching for talent, our platform is designed to make it happen.
               </p>
@@ -113,49 +109,8 @@ export default function HomePage() {
           </div>
         </section>
         
-        {/* Testimonials Section */}
-        <section className="w-full py-12 md:py-24 lg:py-32 bg-muted/50">
-           <div className="container px-4 md:px-6">
-               <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
-                   <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline">
-                       Loved by Professionals Worldwide
-                   </h2>
-                   <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                       Hear what our community members have to say about their experience on HustleHub.
-                   </p>
-               </div>
-               <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
-                   {testimonials.map((testimonial) => (
-                       <Card key={testimonial.name}>
-                           <CardContent className="p-6">
-                               <div className="space-y-4">
-                                   <div className="flex items-center gap-4">
-                                       <Avatar>
-                                           <AvatarImage src={testimonial.avatar} alt={testimonial.name} data-ai-hint={testimonial.dataAiHint} />
-                                           <AvatarFallback>{testimonial.name.charAt(0)}</AvatarFallback>
-                                       </Avatar>
-                                       <div>
-                                           <p className="font-semibold">{testimonial.name}</p>
-                                           <p className="text-sm text-muted-foreground">{testimonial.role}</p>
-                                       </div>
-                                   </div>
-                                   <div className="flex items-center gap-0.5">
-                                       <Star className="w-5 h-5 fill-primary text-primary" />
-                                       <Star className="w-5 h-5 fill-primary text-primary" />
-                                       <Star className="w-5 h-5 fill-primary text-primary" />
-                                       <Star className="w-5 h-5 fill-primary text-primary" />
-                                       <Star className="w-5 h-5 fill-primary text-primary" />
-                                   </div>
-                                   <blockquote className="text-lg leading-relaxed">
-                                       "{testimonial.quote}"
-                                   </blockquote>
-                               </div>
-                           </CardContent>
-                       </Card>
-                   ))}
-               </div>
-           </div>
-        </section>
+        {/* Reviews Section (placed near the bottom/footer) */}
+        <ReviewSection />
 
       </main>
       <footer className="flex w-full shrink-0 flex-col items-center justify-between gap-2 border-t px-4 py-6 sm:flex-row md:px-6">

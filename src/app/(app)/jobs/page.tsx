@@ -1,4 +1,6 @@
+"use client";
 
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,44 +9,78 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Briefcase, MapPin, Search } from "lucide-react";
 import { LocationSelector } from "@/components/location-selector";
+import Link from "next/link";
+import api from "@/lib/api";
+import { Skeleton } from "@/components/ui/skeleton";
 
-const jobListings = [
-  {
-    title: "Urgent: Fix Leaky Kitchen Sink",
-    category: "Home Services",
-    type: "Local",
-    location: "Nairobi, Kenya",
-    tags: ["Urgent", "Plumbing"],
-    description: "Water is dripping from under the sink. Need an experienced plumber to fix it today.",
-  },
-  {
-    title: "Build a Responsive React Landing Page",
-    category: "Tech",
-    type: "Remote",
-    location: "Remote",
-    tags: ["React", "Web Development"],
-    description: "Looking for a skilled frontend developer to create a modern and fast landing page for our new product.",
-  },
-  {
-    title: "Professional Headshots for Corporate Team",
-    category: "Photography",
-    type: "Local",
-    location: "Mombasa, Kenya",
-    tags: ["Photography", "Corporate"],
-    description: "We need a photographer for a team of 15 people. Must have a portfolio.",
-  },
-    {
-    title: "Design a new Logo for a Startup",
-    category: "Design",
-    type: "Remote",
-    location: "Remote",
-    tags: ["Logo Design", "Branding"],
-    description: "We are a new tech startup and need a modern and memorable logo.",
-  },
-];
+interface Job {
+  id: string;
+  title: string;
+  category: { name: string };
+  job_type: string;
+  location: string;
+  tags: string[];
+  description: string;
+  matched_skills?: string[]; // Add matched_skills to the interface
+}
 
+interface JobCategory {
+  id: string;
+  name: string;
+}
 
 export default function JobsPage() {
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [categories, setCategories] = useState<JobCategory[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filters, setFilters] = useState({
+    search: "",
+    category: "",
+    county: "",
+    sub_county: "",
+    ward: "",
+    neighborhood: "", // Add neighborhood to filters
+  });
+
+  useEffect(() => {
+    const fetchJobsAndCategories = async () => {
+      try {
+        const [jobsResponse, categoriesResponse] = await Promise.all([
+          api.get("/jobs/"),
+          api.get("/job-categories/"),
+        ]);
+        setJobs(jobsResponse.data);
+        setCategories(categoriesResponse.data);
+      } catch (error) {
+        console.error("Failed to fetch jobs or categories", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchJobsAndCategories();
+  }, []);
+
+  const handleFilterChange = (name: string, value: string) => {
+    setFilters((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleLocationChange = (countyId: string, subCountyId: string, wardId: string, neighborhoodId: string) => {
+    setFilters((prev) => ({ ...prev, county: countyId, sub_county: subCountyId, ward: wardId, neighborhood: neighborhoodId }));
+  };
+
+  const handleSearch = async () => {
+    setLoading(true);
+    try {
+      const response = await api.get("/jobs/", { params: filters });
+      setJobs(response.data);
+    } catch (error) {
+      console.error("Failed to search jobs", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-8">
       <Card>
@@ -56,72 +92,98 @@ export default function JobsPage() {
            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                   <Label htmlFor="search-keywords">Keywords or Skills</Label>
-                  <Input id="search-keywords" placeholder="e.g., 'React' or 'Plumber'" />
+                  <Input id="search-keywords" placeholder="e.g., 'React' or 'Plumber'" onChange={(e) => handleFilterChange("search", e.target.value)} />
               </div>
               <div className="space-y-2">
                   <Label htmlFor="search-category">Category</Label>
-                  <Select>
+                  <Select onValueChange={(value) => handleFilterChange("category", value)}>
                       <SelectTrigger id="search-category">
                           <SelectValue placeholder="All Categories" />
                       </SelectTrigger>
                       <SelectContent>
-                          <SelectItem value="all">All Categories</SelectItem>
-                          <SelectItem value="tech">Tech</SelectItem>
-                          <SelectItem value="home-services">Home Services</SelectItem>
-                          <SelectItem value="design">Design</SelectItem>
-                          <SelectItem value="writing">Writing</SelectItem>
-                          <SelectItem value="beauty">Beauty</SelectItem>
-                          <SelectItem value="photography">Photography</SelectItem>
+                          <SelectItem value="">All Categories</SelectItem>
+                          {categories.map((cat) => (
+                            <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                          ))}
                       </SelectContent>
                   </Select>
               </div>
            </div>
-           <LocationSelector />
+           <LocationSelector onLocationChange={handleLocationChange} />
         </CardContent>
         <CardFooter>
-          <Button className="w-full">
+          <Button className="w-full" onClick={handleSearch}>
               <Search className="mr-2 h-4 w-4" />
               Search Jobs
           </Button>
         </CardFooter>
       </Card>
-      
+
       <div>
         <h1 className="text-3xl font-bold tracking-tight font-headline mb-6">
-          Available Jobs ({jobListings.length})
+          Available Jobs ({jobs.length})
         </h1>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {jobListings.map((job, index) => (
-            <Card key={index}>
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                    <CardTitle className="text-lg">{job.title}</CardTitle>
-                    <Badge variant={job.type === 'Local' ? 'outline' : 'default'}>
-                        {job.type}
-                    </Badge>
-                </div>
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                        <Briefcase className="h-4 w-4" />
-                        <span>{job.category}</span>
-                    </div>
-                     <div className="flex items-center gap-1">
-                        <MapPin className="h-4 w-4" />
-                        <span>{job.location}</span>
-                    </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground text-sm mb-4">{job.description}</p>
-                <div className="flex gap-2">
-                  {job.tags.map(tag => <Badge key={tag} variant="secondary">{tag}</Badge>)}
-                </div>
-              </CardContent>
-              <CardFooter className="flex justify-end">
-                <Button>Apply Now</Button>
-              </CardFooter>
-            </Card>
-          ))}
+          {loading ? (
+            Array.from({ length: 6 }).map((_, i) => (
+              <Card key={i}>
+                <CardHeader>
+                  <Skeleton className="h-6 w-3/4" />
+                  <Skeleton className="h-4 w-1/4" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-12 w-full" />
+                </CardContent>
+                <CardFooter>
+                  <Skeleton className="h-10 w-24" />
+                </CardFooter>
+              </Card>
+            ))
+          ) : (
+            jobs.map((job) => (
+              <Card key={job.id}>
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                      <CardTitle className="text-lg">{job.title}</CardTitle>
+                      <Badge variant={job.job_type === 'Local' ? 'outline' : 'default'}>
+                          {job.job_type}
+                      </Badge>
+                  </div>
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                          <Briefcase className="h-4 w-4" />
+                          <span>{job.category.name}</span>
+                      </div>
+                       <div className="flex items-center gap-1">
+                          <MapPin className="h-4 w-4" />
+                          <span>{job.location}</span>
+                      </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground text-sm mb-4">{job.description}</p>
+                   {job.matched_skills && job.matched_skills.length > 0 && (
+                      <div className="mb-4">
+                        <h4 className="font-semibold text-sm mb-1">Matched Skills:</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {job.matched_skills.map((skill: string) => (
+                            <Badge key={skill} variant="success">{skill}</Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  <div className="flex gap-2">
+                    {job.tags.map(tag => <Badge key={tag} variant="secondary">{tag}</Badge>)}
+                  </div>
+                </CardContent>
+                <CardFooter className="flex justify-end">
+                  <Button asChild>
+                    <Link href={`/jobs/${job.id}`}>View Job</Link>
+                  </Button>
+                </CardFooter>
+              </Card>
+            ))
+          )}
         </div>
       </div>
     </div>

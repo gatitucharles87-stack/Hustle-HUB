@@ -1,21 +1,29 @@
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Logo } from '@/components/logo';
-import { ThemeToggle } from '../theme-toggle';
+"use client";
+import Link from "next/link";
+import { Button } from "../ui/button";
+import { Logo } from "../logo";
+import { ThemeToggle } from "../theme-toggle";
 
 export function PublicHeader() {
   return (
-    <header className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6 border-b">
-      <Logo />
-      <nav className="flex items-center gap-4">
-        <Button variant="ghost" asChild>
-            <Link href="/about">About Us</Link>
-        </Button>
-        <Button variant="ghost" asChild>
-          <Link href="/login">Log In</Link>
-        </Button>
+    <header className="px-4 lg:px-6 h-14 flex items-center shadow-md">
+      <Link href="/" className="flex items-center justify-center">
+        <Logo />
+        <span className="sr-only">HustleHub</span>
+      </Link>
+      <nav className="ml-auto flex gap-4 sm:gap-6 items-center">
+        <Link
+            href="/about"
+            className="text-sm font-medium hover:underline underline-offset-4"
+        >
+            About
+        </Link>
+        {/* Removed Features and Contact links */}
         <Button asChild>
-          <Link href="/signup">Sign Up</Link>
+          <Link href="/login">Login</Link>
+        </Button>
+        <Button asChild variant="secondary">
+          <Link href="/signup">Sign up</Link>
         </Button>
         <ThemeToggle />
       </nav>

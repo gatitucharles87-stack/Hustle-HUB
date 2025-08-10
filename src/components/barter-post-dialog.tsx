@@ -29,6 +29,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Wand2, Loader2, Send } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import api from '@/lib/api'; // Import the centralized API client
 
 const formSchema = z.object({
   skillsToOffer: z.string().min(1, 'Please list the skills you can offer.'),
@@ -53,11 +54,17 @@ function AIGenerateButton() {
   );
 }
 
-export function BarterPostDialog({ children }: { children: React.ReactNode }) {
+interface BarterPostDialogProps {
+    children: React.ReactNode;
+    onPostCreated?: () => void; // Optional callback for when a post is successfully created
+}
+
+export function BarterPostDialog({ children, onPostCreated }: BarterPostDialogProps) {
     const [open, setOpen] = useState(false);
     const { toast } = useToast();
     const initialState: BarterPostFormState = { message: '', data: null };
     const [state, formAction] = useActionState(generateBarterPostAction, initialState);
+    const [isPosting, setIsPosting] = useState(false);
 
     const form = useForm<FormData>({
         resolver: zodResolver(formSchema),
@@ -89,15 +96,56 @@ export function BarterPostDialog({ children }: { children: React.ReactNode }) {
         }
     }, [state, form, toast]);
 
-    const handleDialogSubmit = () => {
-        // Handle the actual posting logic here
-        console.log("Submitting barter post:", form.getValues());
-        toast({
-            title: 'Success!',
-            description: 'Your barter offer has been posted.',
-        });
-        setOpen(false); // Close the dialog on successful post
-        form.reset(); // Reset form for next time
+    const handleDialogSubmit = async () => {
+        const isValid = await form.trigger(); // Manually trigger validation for all fields
+        if (!isValid) {
+            toast({
+                title: "Validation Error",
+                description: "Please fill in all required fields.",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        setIsPosting(true);
+        try {
+            const formData = form.getValues();
+            const payload = {
+                offers_description: formData.skillsToOffer,
+                wants_description: formData.skillsToReceive,
+                title: formData.title || 'No Title',
+                description: formData.description || 'No Description',
+            };
+
+            const response = await api.post('/skill-barter-posts/', payload);
+
+            if (response.status === 201) {
+                toast({
+                    title: 'Barter Post Created!',
+                    description: 'Your skill barter offer has been successfully posted.',
+                });
+                setOpen(false);
+                form.reset();
+                onPostCreated?.(); // Call the callback to refresh the list
+            } else {
+                const errorData = response.data; // Axios error response data
+                toast({
+                    title: 'Failed to Post Offer',
+                    description: errorData.detail || 'An error occurred while posting your offer.',
+                    variant: 'destructive',
+                });
+            }
+        } catch (error: any) {
+            console.error("Error posting barter offer:", error);
+            const errorMessage = error.response?.data?.detail || "An unexpected error occurred. Please try again.";
+            toast({
+                title: 'Failed to Post Offer',
+                description: errorMessage,
+                variant: 'destructive',
+            });
+        } finally {
+            setIsPosting(false);
+        }
     };
 
     return (
@@ -176,9 +224,8 @@ export function BarterPostDialog({ children }: { children: React.ReactNode }) {
                     </form>
                 </Form>
                 <DialogFooter>
-                    <Button type="button" onClick={handleDialogSubmit} size="lg">
-                        <Send className="mr-2 h-4 w-4" />
-                        Post Barter Offer
+                    <Button type="button" onClick={handleDialogSubmit} disabled={isPosting} size="lg">
+                        {isPosting ? 'Posting...' : <><Send className="mr-2 h-4 w-4" /> Post Barter Offer</>}
                     </Button>
                 </DialogFooter>
             </DialogContent>

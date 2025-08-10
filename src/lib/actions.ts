@@ -1,4 +1,3 @@
-
 'use server';
 
 import {
@@ -14,6 +13,14 @@ import { z } from 'zod';
 const barterPostFormSchema = z.object({
   skillsToOffer: z.string().min(1, 'Skills to offer are required.'),
   skillsToReceive: z.string().min(1, 'Skills to receive are required.'),
+});
+
+const updateBarterPostSchema = z.object({
+  postId: z.string().min(1, 'Post ID is required.'),
+  skillsToOffer: z.string().min(1, 'Skills to offer are required.'),
+  skillsToReceive: z.string().min(1, 'Skills to receive are required.'),
+  title: z.string().min(1, 'Title is required.'),
+  description: z.string().min(1, 'Description is required.'),
 });
 
 export type JobPostFormState = {
@@ -35,6 +42,18 @@ export type BarterPostFormState = {
     skillsToReceive?: string[];
   } | null;
   data: GenerateBarterPostOutput | null;
+};
+
+export type UpdateBarterPostFormState = {
+  message: string;
+  errors?: {
+    postId?: string[];
+    skillsToOffer?: string[];
+    skillsToReceive?: string[];
+    title?: string[];
+    description?: string[];
+  } | null;
+  data: { success: boolean } | null;
 };
 
 
@@ -115,3 +134,40 @@ export async function generateBarterPostAction(
   }
 }
 
+export async function updateBarterPostAction(
+  prevState: UpdateBarterPostFormState,
+  formData: FormData
+): Promise<UpdateBarterPostFormState> {
+  const rawFormData = {
+    postId: formData.get('postId'),
+    skillsToOffer: formData.get('skillsToOffer'),
+    skillsToReceive: formData.get('skillsToReceive'),
+    title: formData.get('title'),
+    description: formData.get('description'),
+  };
+
+  const validatedFields = updateBarterPostSchema.safeParse(rawFormData);
+
+  if (!validatedFields.success) {
+    return {
+      message: 'Invalid form data.',
+      errors: validatedFields.error.flatten().fieldErrors,
+      data: null,
+    };
+  }
+
+  const { postId, skillsToOffer, skillsToReceive, title, description } = validatedFields.data;
+
+  // Simulate API call to update the barter post
+  console.log("Updating barter post with ID:", postId);
+  console.log("New data:", { skillsToOffer, skillsToReceive, title, description });
+
+  // In a real application, you would make an API call here to update the post in your database.
+  // Example: await db.updateBarterPost(postId, { skillsToOffer, skillsToReceive, title, description });
+
+  return {
+    message: 'Barter post updated successfully.',
+    errors: null,
+    data: { success: true },
+  };
+}
