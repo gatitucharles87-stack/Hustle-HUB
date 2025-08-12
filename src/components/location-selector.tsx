@@ -74,7 +74,6 @@ export function LocationSelector({
     const fetchCounties = useCallback(async (searchQuery: string = '') => {
         setLoadingCounties(true);
         try {
-            // FIX: Removed leading slash
             const response = await api.get(`counties/?search=${searchQuery}`);
             setCounties(response.data.map((item: any) => ({ label: item.name, value: item.id })));
         } catch (error) {
@@ -96,15 +95,11 @@ export function LocationSelector({
     // Fetch Sub-counties based on selectedCountyId and search term
     const fetchSubCounties = useCallback(async (searchQuery: string = '') => {
         if (!selectedCountyId) {
-            setSubCounties([]);
-            setSelectedSubCountyId('');
-            setSelectedWardId('');
-            setSelectedNeighborhoodId('');
+            setSubCounties([]); // Ensure subCounties are cleared if no county is selected
             return;
         }
         setLoadingSubCounties(true);
         try {
-            // FIX: Removed leading slash
             const response = await api.get(`sub-counties/?county_id=${selectedCountyId}&search=${searchQuery}`);
             setSubCounties(response.data.map((item: any) => ({ label: item.name, value: item.id })));
         } catch (error) {
@@ -126,14 +121,11 @@ export function LocationSelector({
     // Fetch Wards based on selectedSubCountyId and search term
     const fetchWards = useCallback(async (searchQuery: string = '') => {
         if (!selectedSubCountyId) {
-            setWards([]);
-            setSelectedWardId('');
-            setSelectedNeighborhoodId('');
+            setWards([]); // Ensure wards are cleared if no sub-county is selected
             return;
         }
         setLoadingWards(true);
         try {
-            // FIX: Removed leading slash
             const response = await api.get(`wards/?sub_county_id=${selectedSubCountyId}&search=${searchQuery}`);
             setWards(response.data.map((item: any) => ({ label: item.name, value: item.id })));
         } catch (error) {
@@ -152,12 +144,15 @@ export function LocationSelector({
         fetchWards(debouncedWardSearchTerm);
     }, [fetchWards, debouncedWardSearchTerm]);
 
-    // Fetch Neighborhoods based on search term
+    // Fetch Neighborhoods based on selectedWardId and search term
     const fetchNeighborhoods = useCallback(async (searchQuery: string = '') => {
+        if (!selectedWardId) {
+            setNeighborhoods([]); // Ensure neighborhoods are cleared if no ward is selected
+            return;
+        }
         setLoadingNeighborhoods(true);
         try {
-            // FIX: Removed leading slash
-            const response = await api.get(`neighborhood-tags/?search=${searchQuery}`);
+            const response = await api.get(`neighborhood-tags/?search=${searchQuery}`); // Assuming this endpoint handles filtering by search term only
             setNeighborhoods(response.data.map((item: any) => ({ label: item.name, value: item.id })));
         } catch (error) {
             console.error("Failed to fetch neighborhoods:", error);
@@ -169,7 +164,7 @@ export function LocationSelector({
         } finally {
             setLoadingNeighborhoods(false);
         }
-    }, [toast]); 
+    }, [selectedWardId, toast]); // Now also depends on selectedWardId
 
     useEffect(() => {
         fetchNeighborhoods(debouncedNeighborhoodSearchTerm);
@@ -188,6 +183,9 @@ export function LocationSelector({
         setSubCountySearchTerm(''); // Clear search terms for dependent fields
         setWardSearchTerm('');
         setNeighborhoodSearchTerm('');
+        setSubCounties([]); // Clear options
+        setWards([]); // Clear options
+        setNeighborhoods([]); // Clear options
     };
 
     const handleSubCountyChange = (value: string) => {
@@ -196,12 +194,15 @@ export function LocationSelector({
         setSelectedNeighborhoodId('');
         setWardSearchTerm('');
         setNeighborhoodSearchTerm('');
+        setWards([]); // Clear options
+        setNeighborhoods([]); // Clear options
     };
 
     const handleWardChange = (value: string) => {
         setSelectedWardId(value);
         setSelectedNeighborhoodId(''); // Reset dependent fields
         setNeighborhoodSearchTerm('');
+        setNeighborhoods([]); // Clear options
     };
 
     const handleNeighborhoodChange = (value: string) => {

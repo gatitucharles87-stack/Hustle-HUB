@@ -65,8 +65,8 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5), # Set a short lifetime for access tokens
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7), # Set a longer lifetime for refresh tokens
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30), # Increased lifetime
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=14), # Increased lifetime
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
     'UPDATE_LAST_LOGIN': True,
@@ -87,8 +87,8 @@ SIMPLE_JWT = {
     'JTI_CLAIM': 'jti',
 
     'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
-    'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
-    'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
+    'SLIDING_TOKEN_LIFETIME': timedelta(minutes=30),
+    'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=7),
 }
 
 MIDDLEWARE = [
