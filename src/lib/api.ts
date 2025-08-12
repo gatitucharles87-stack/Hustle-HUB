@@ -20,7 +20,7 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    if (error.response.status === 401 && !originalRequest._retry) {
+    if (error.response && error.response.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       const refreshToken = localStorage.getItem("refreshToken");
       if (refreshToken) {
@@ -40,61 +40,13 @@ api.interceptors.response.use(
           console.error("Token refresh failed", refreshError);
           localStorage.removeItem("accessToken");
           localStorage.removeItem("refreshToken");
-          // Redirect to login page
-          window.location.href = "/login";
-          return Promise.reject(refreshError);
+          // Optionally, redirect to login page if refresh fails
+          // window.location.href = "/login";
         }
       }
     }
     return Promise.reject(error);
   }
 );
-
-export const getRecommendedJobs = async (categoryId?: string) => {
-  try {
-    const response = await api.get('/jobs/recommended/', {
-      params: { category: categoryId },
-    });
-    return response.data;
-  } catch (error) {
-    console.error("Failed to fetch recommended jobs:", error);
-    toast({
-      title: "Error",
-      description: "Failed to load recommended jobs. Please try again.",
-      variant: "destructive",
-    });
-    return [];
-  }
-};
-
-export const getJobCategories = async () => {
-  try {
-    const response = await api.get('/job-categories/');
-    return response.data;
-  } catch (error) {
-    console.error("Failed to fetch job categories:", error);
-    toast({
-      title: "Error",
-      description: "Failed to load job categories. Please try again.",
-      variant: "destructive",
-    });
-    return [];
-  }
-};
-
-export const getCommissionHistory = async () => {
-  try {
-    const response = await api.get('/commission-logs/');
-    return response.data;
-  } catch (error) {
-    console.error("Failed to fetch commission history:", error);
-    toast({
-      title: "Error",
-      description: "Failed to load commission history. Please try again.",
-      variant: "destructive",
-    });
-    return [];
-  }
-};
 
 export default api;
