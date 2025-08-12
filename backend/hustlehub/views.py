@@ -590,7 +590,8 @@ class DashboardStatsView(generics.RetrieveAPIView):
 
         # 7. Commission Details
         commission_due = CommissionLog.objects.filter(
-            job__freelancer=user, 
+            job__applications__freelancer=user, 
+            job__applications__status='accepted',
             status='due',
             due_date__lte=date.today() # Only consider overdue commissions
         ).aggregate(Sum('commission_amount'))['commission_amount__sum'] or 0
@@ -610,7 +611,8 @@ class DashboardStatsView(generics.RetrieveAPIView):
             commission_is_suspended = (commission_due > 0 and not has_active_excuse)
 
             soonest_overdue_commission = CommissionLog.objects.filter(
-                job__freelancer=user, 
+                job__applications__freelancer=user,
+                job__applications__status='accepted', 
                 status='due',
                 due_date__lte=date.today()
             ).order_by('due_date').first()
