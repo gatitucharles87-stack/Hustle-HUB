@@ -13,23 +13,22 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 from pathlib import Path
 import os
 import dj_database_url
-from decouple import Config, RepositoryEnv # Corrected import
+from dotenv import load_dotenv # Changed import
+
+load_dotenv() # Load environment variables from .env file
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-# Instantiate config
-config = Config(RepositoryEnv(os.path.join(BASE_DIR, '.env')))
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY')
+SECRET_KEY = os.getenv('SECRET_KEY') # Changed to os.getenv
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=False, cast=bool)
+DEBUG = os.getenv('DEBUG', 'False').lower() == 'true' # Changed to os.getenv
 
 ALLOWED_HOSTS = ['*'] # Allow all hosts for now, can be tightened later
 
@@ -98,7 +97,7 @@ WSGI_APPLICATION = 'hustlehub_project.wsgi.application'
 
 DATABASES = {
     'default': dj_database_url.config(
-        default=config('DATABASE_URL')
+        default=os.getenv('DATABASE_URL') # Changed to os.getenv
     )
 }
 
