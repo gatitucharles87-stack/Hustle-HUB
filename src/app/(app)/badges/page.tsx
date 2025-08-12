@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Award, CheckCircle, Star, TrendingUp, ChevronRight } from "lucide-react";
+import { Award, CheckCircle, Star, TrendingUp, ChevronRight, Gift, Users } from "lucide-react"; // Added Gift, Users
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -10,25 +10,29 @@ import api from "@/lib/api";
 import { useUser } from "@/hooks/use-user";
 import { Skeleton } from "@/components/ui/skeleton";
 
+// Replicate backend LEVEL_THRESHOLDS and BADGE_NAMES for frontend calculation
+const LEVEL_THRESHOLDS = [0, 100, 250, 400, 600, 850, 1100, 1400, 1800, 2250, 2750, 3300, 3900, 4550, 5250, 6000, 6800, 7650, 8550, 9500];
+const BADGE_NAMES = [
+    'Rookie', 'Hustle Initiate', 'Skill Sprinter', 'Task Tackler', 'Smart Hustler', 
+    'Certified Doer', 'Work Warrior', 'Pro Performer', 'Local Legend', 'Trusted Hustler',
+    'Efficiency Expert', 'Skill Barter Champ', 'Client Magnet', 'Consistency King/Queen',
+    '5-Star Streak', 'Hustle Architect', 'Elite Hustler', 'Hustler Royalty',
+    'Hustle Guardian', 'Hustle Legend'
+];
+
 interface BadgeData {
   id: string;
   name: string;
   description: string;
-  icon: string; // This should match a key in iconMap
-  badge_type: string; // e.g., "LEVEL", "COMPLETION"
+  icon: string; 
+  badge_type: string; 
 }
 
 interface UserBadge {
     id: string;
-    badge: string; // ID of the badge
+    badge: BadgeData; // The full badge object as serialized by BadgeSerializer
     user: string;  // ID of the user
-    unlocked_at: string;
-}
-
-interface GamificationData {
-    currentXp: number; // Corrected from current_xp
-    nextLevelXp: number; // Corrected from xp_needed_for_next_level
-    currentLevel: number; // Added as per backend
+    awarded_at: string; // Corrected from unlocked_at to awarded_at
 }
 
 // Map icon names to Lucide React components (ensure these icons are consistent with backend data)
@@ -37,11 +41,15 @@ const iconMap: { [key: string]: React.ElementType } = {
     "check_circle": CheckCircle,
     "star": Star,
     "trending_up": TrendingUp,
-    // Add more mappings as needed based on backend 'icon' field values
-    "Award": Award, // Keeping for backward compatibility if backend uses PascalCase
+    "Award": Award, 
     "CheckCircle": CheckCircle,
     "Star": Star,
     "TrendingUp": TrendingUp,
+    "Gift": Gift, // For referral badges perhaps
+    "Users": Users, // For community-related badges
+    "Zap": Award, // Placeholder for general achievement
+    "Globe": Award, // Placeholder for remote work
+    "Heart": Award, // Placeholder for good reviews
 };
 
 // Level Display Component
@@ -76,62 +84,78 @@ export default function BadgesPage() {
     const { user, loading: userLoading } = useUser();
     const [allBadges, setAllBadges] = useState<BadgeData[]>([]);
     const [userBadges, setUserBadges] = useState<UserBadge[]>([]);
-    const [gamificationData, setGamificationData] = useState<GamificationData | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [loadingBadges, setLoadingBadges] = useState(true);
     const { toast } = useToast();
 
     useEffect(() => {
-        const loadGamificationData = async () => {
-            if (!user || userLoading) {
-                setLoading(false); // Ensure loading is false if user is not available
+        const loadBadgesData = async () => {
+            if (userLoading) return; // Wait for user data to load
+
+            if (!user) { // If user is null after loading, stop loading and return
+                setLoadingBadges(false);
                 return;
             }
 
             try {
-                setLoading(true);
-                // user is guaranteed to be non-null here due to the check above
-                const [badgesRes, userBadgesRes, xpLogsRes] = await Promise.all([
+                setLoadingBadges(true);
+                const [badgesRes, userBadgesRes] = await Promise.all([
                     api.get<BadgeData[]>("/badges/"),
-                    api.get<UserBadge[]>(`/user-badges/?user_id=${user.id}`),
-                    api.get<GamificationData>("/xp-logs/me/"),
+                    api.get<UserBadge[]>("/user-badges/"), // This endpoint automatically filters by current user
                 ]);
 
                 setAllBadges(badgesRes.data);
                 setUserBadges(userBadgesRes.data);
-                setGamificationData(xpLogsRes.data);
             } catch (error) {
-                console.error("Failed to fetch gamification data", error);
+                console.error("Failed to fetch badges data", error);
                 toast({
                     title: "Error",
-                    description: "Failed to load gamification data. Please try again.",
+                    description: "Failed to load badges data. Please try again.",
                     variant: "destructive",
                 });
             } finally {
-                setLoading(false);
+                setLoadingBadges(false);
             }
         };
 
-        loadGamificationData();
-    }, [user, userLoading, toast]); // Rerun when user or userLoading changes
+        loadBadgesData();
+    }, [user, userLoading, toast]); 
 
-    const combinedBadges = allBadges.map(badge => ({
-        ...badge,
-        unlocked: userBadges.some(ub => ub.badge === badge.id), // Assuming badge.id is the common key
-    }));
+    const currentXp = user?.xp_points || 0; 
+    const currentLevel = user?.level || 0; 
 
-    const currentXp = gamificationData?.currentXp || 0; // Corrected variable name
-    const nextLevelXp = gamificationData?.nextLevelXp || 1; // Corrected variable name
-    const currentLevel = gamificationData?.currentLevel || 0; // Corrected variable name
+    // Calculate next level XP based on current level
+    let nextLevelXp = 1; // Default to 1 to avoid division by zero
+    let xpNeededForNextLevel = 1; // Default value
+
+    if (currentLevel > 0 && currentLevel <= LEVEL_THRESHOLDS.length) {
+        nextLevelXp = LEVEL_THRESHOLDS[currentLevel];
+        xpNeededForNextLevel = nextLevelXp - currentXp;
+    } else if (currentLevel > LEVEL_THRESHOLDS.length) {
+        // User is beyond max defined level, set a high target or indicate max level
+        nextLevelXp = currentXp + 1; // Arbitrary value if max level reached
+        xpNeededForNextLevel = 0; // No more XP needed for next level
+    }
 
     const progressPercentage = (currentXp / nextLevelXp) * 100;
 
     const progressBarColor = () => {
-        if (progressPercentage > 90) return "bg-green-500";
+        if (progressPercentage >= 100) return "bg-green-500"; // Maxed out
+        if (progressPercentage > 90) return "bg-lime-500";
+        if (progressPercentage > 70) return "bg-emerald-500";
         if (progressPercentage > 50) return "bg-yellow-500";
         return "bg-primary";
     };
 
-    if (loading || userLoading) {
+    // Combine all badges with user's unlocked status
+    const combinedBadges = allBadges.map(badge => ({
+        ...badge,
+        unlocked: userBadges.some(ub => ub.badge.id === badge.id), 
+    }));
+
+    // Filter badges to show only unlocked ones if preferred, or all with status
+    // For now, show all with unlocked status
+
+    if (userLoading || loadingBadges) {
         return (
             <div className="flex flex-col gap-8">
                 <Card>
@@ -187,15 +211,21 @@ export default function BadgesPage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    <LevelDisplay level={currentLevel} /> {/* Corrected to currentLevel */}
+                    <LevelDisplay level={currentLevel} /> 
                     <div className="flex items-center justify-between">
                         <span className="font-semibold">Your XP Progress</span>
-                        <span className="text-sm font-bold text-primary">{currentXp} / {nextLevelXp} XP</span> {/* Corrected variables */}
+                        <span className="text-sm font-bold text-primary">{currentXp} / {nextLevelXp} XP</span>
                     </div>
                     <Progress value={progressPercentage} className="h-4" indicatorClassName={progressBarColor()} />
-                    <p className="text-sm text-muted-foreground">
-                        You are <strong>{nextLevelXp - currentXp} XP</strong> away from the next level!
-                    </p>
+                    {xpNeededForNextLevel > 0 ? (
+                        <p className="text-sm text-muted-foreground">
+                            You are <strong>{xpNeededForNextLevel} XP</strong> away from the next level!
+                        </p>
+                    ) : (
+                        <p className="text-sm text-green-600 font-semibold">
+                            Congratulations! You've reached the highest level defined or are beyond the next threshold.
+                        </p>
+                    )}
                 </CardContent>
             </Card>
 
@@ -210,7 +240,7 @@ export default function BadgesPage() {
                 </CardHeader>
                 <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {combinedBadges.map((badge, index: number) => {
+                        {combinedBadges.map((badge) => {
                             const IconComponent = iconMap[badge.icon as keyof typeof iconMap];
                             return (
                                 <Card key={badge.id} className={cn(
@@ -222,7 +252,7 @@ export default function BadgesPage() {
                                             {IconComponent && (
                                                 <IconComponent className={cn(
                                                     "h-12 w-12 p-2 rounded-lg bg-background",
-                                                    badge.unlocked ? "text-yellow-500" : "text-muted-foreground" // Example color for badges
+                                                    badge.unlocked ? "text-yellow-500" : "text-muted-foreground" 
                                                 )} />
                                             )}
                                             <div>

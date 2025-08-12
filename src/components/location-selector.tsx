@@ -1,7 +1,6 @@
-
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Label } from "@/components/ui/label";
 import { Combobox } from "@/components/ui/combobox";
 import api from "@/lib/api";
@@ -18,6 +17,23 @@ interface LocationSelectorProps {
     initialSubCountyId?: string;
     initialWardId?: string;
     initialNeighborhoodId?: string;
+}
+
+// Debounce hook
+function useDebounce<T>(value: T, delay: number): T {
+    const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedValue(value);
+        }, delay);
+
+        return () => {
+            clearTimeout(handler);
+        };
+    }, [value, delay]);
+
+    return debouncedValue;
 }
 
 export function LocationSelector({
@@ -37,6 +53,16 @@ export function LocationSelector({
     const [selectedWardId, setSelectedWardId] = useState(initialWardId || '');
     const [selectedNeighborhoodId, setSelectedNeighborhoodId] = useState(initialNeighborhoodId || '');
 
+    const [countySearchTerm, setCountySearchTerm] = useState('');
+    const [subCountySearchTerm, setSubCountySearchTerm] = useState('');
+    const [wardSearchTerm, setWardSearchTerm] = useState('');
+    const [neighborhoodSearchTerm, setNeighborhoodSearchTerm] = useState('');
+
+    const debouncedCountySearchTerm = useDebounce(countySearchTerm, 500);
+    const debouncedSubCountySearchTerm = useDebounce(subCountySearchTerm, 500);
+    const debouncedWardSearchTerm = useDebounce(wardSearchTerm, 500);
+    const debouncedNeighborhoodSearchTerm = useDebounce(neighborhoodSearchTerm, 500);
+
     const [loadingCounties, setLoadingCounties] = useState(false);
     const [loadingSubCounties, setLoadingSubCounties] = useState(false);
     const [loadingWards, setLoadingWards] = useState(false);
@@ -45,104 +71,109 @@ export function LocationSelector({
     const { toast } = useToast();
 
     // Fetch Counties
-    useEffect(() => {
-        const fetchCounties = async () => {
-            setLoadingCounties(true);
-            try {
-                const response = await api.get("/counties/");
-                setCounties(response.data.map((item: any) => ({ label: item.name, value: item.id })));
-            } catch (error) {
-                console.error("Failed to fetch counties:", error);
-                toast({
-                    title: "Error",
-                    description: "Failed to load counties.",
-                    variant: "destructive",
-                });
-            } finally {
-                setLoadingCounties(false);
-            }
-        };
-        fetchCounties();
+    const fetchCounties = useCallback(async (searchQuery: string = '') => {
+        setLoadingCounties(true);
+        try {
+            // FIX: Removed leading slash
+            const response = await api.get(`counties/?search=${searchQuery}`);
+            setCounties(response.data.map((item: any) => ({ label: item.name, value: item.id })));
+        } catch (error) {
+            console.error("Failed to fetch counties:", error);
+            toast({
+                title: "Error",
+                description: "Failed to load counties.",
+                variant: "destructive",
+            });
+        } finally {
+            setLoadingCounties(false);
+        }
     }, [toast]);
 
-    // Fetch Sub-counties based on selectedCountyId
     useEffect(() => {
-        const fetchSubCounties = async () => {
-            if (!selectedCountyId) {
-                setSubCounties([]);
-                setSelectedSubCountyId('');
-                setSelectedWardId('');
-                setSelectedNeighborhoodId('');
-                return;
-            }
-            setLoadingSubCounties(true);
-            try {
-                const response = await api.get(`/sub-counties/?county_id=${selectedCountyId}`);
-                setSubCounties(response.data.map((item: any) => ({ label: item.name, value: item.id })));
-            } catch (error) {
-                console.error("Failed to fetch sub-counties:", error);
-                toast({
-                    title: "Error",
-                    description: "Failed to load sub-counties.",
-                    variant: "destructive",
-                });
-            } finally {
-                setLoadingSubCounties(false);
-            }
-        };
-        fetchSubCounties();
+        fetchCounties(debouncedCountySearchTerm);
+    }, [fetchCounties, debouncedCountySearchTerm]);
+
+    // Fetch Sub-counties based on selectedCountyId and search term
+    const fetchSubCounties = useCallback(async (searchQuery: string = '') => {
+        if (!selectedCountyId) {
+            setSubCounties([]);
+            setSelectedSubCountyId('');
+            setSelectedWardId('');
+            setSelectedNeighborhoodId('');
+            return;
+        }
+        setLoadingSubCounties(true);
+        try {
+            // FIX: Removed leading slash
+            const response = await api.get(`sub-counties/?county_id=${selectedCountyId}&search=${searchQuery}`);
+            setSubCounties(response.data.map((item: any) => ({ label: item.name, value: item.id })));
+        } catch (error) {
+            console.error("Failed to fetch sub-counties:", error);
+            toast({
+                title: "Error",
+                description: "Failed to load sub-counties.",
+                variant: "destructive",
+            });
+        } finally {
+            setLoadingSubCounties(false);
+        }
     }, [selectedCountyId, toast]);
 
-    // Fetch Wards based on selectedSubCountyId
     useEffect(() => {
-        const fetchWards = async () => {
-            if (!selectedSubCountyId) {
-                setWards([]);
-                setSelectedWardId('');
-                setSelectedNeighborhoodId('');
-                return;
-            }
-            setLoadingWards(true);
-            try {
-                const response = await api.get(`/wards/?sub_county_id=${selectedSubCountyId}`);
-                setWards(response.data.map((item: any) => ({ label: item.name, value: item.id })));
-            } catch (error) {
-                console.error("Failed to fetch wards:", error);
-                toast({
-                    title: "Error",
-                    description: "Failed to load wards.",
-                    variant: "destructive",
-                });
-            } finally {
-                setLoadingWards(false);
-            }
-        };
-        fetchWards();
+        fetchSubCounties(debouncedSubCountySearchTerm);
+    }, [fetchSubCounties, debouncedSubCountySearchTerm]);
+
+    // Fetch Wards based on selectedSubCountyId and search term
+    const fetchWards = useCallback(async (searchQuery: string = '') => {
+        if (!selectedSubCountyId) {
+            setWards([]);
+            setSelectedWardId('');
+            setSelectedNeighborhoodId('');
+            return;
+        }
+        setLoadingWards(true);
+        try {
+            // FIX: Removed leading slash
+            const response = await api.get(`wards/?sub_county_id=${selectedSubCountyId}&search=${searchQuery}`);
+            setWards(response.data.map((item: any) => ({ label: item.name, value: item.id })));
+        } catch (error) {
+            console.error("Failed to fetch wards:", error);
+            toast({
+                title: "Error",
+                description: "Failed to load wards.",
+                variant: "destructive",
+            });
+        } finally {
+            setLoadingWards(false);
+        }
     }, [selectedSubCountyId, toast]);
 
-    // Fetch Neighborhoods based on selectedWardId (if applicable) or independently
     useEffect(() => {
-        const fetchNeighborhoods = async () => {
-            // The API description says GET /api/neighborhood-tags/ without specific filters
-            // If neighborhoods are dependent on ward, the backend API needs to support it
-            // For now, assuming it fetches all or is filtered by ward if implemented later
-            setLoadingNeighborhoods(true);
-            try {
-                const response = await api.get("/neighborhood-tags/");
-                setNeighborhoods(response.data.map((item: any) => ({ label: item.name, value: item.id })));
-            } catch (error) {
-                console.error("Failed to fetch neighborhoods:", error);
-                toast({
-                    title: "Error",
-                    description: "Failed to load neighborhoods.",
-                    variant: "destructive",
-                });
-            } finally {
-                setLoadingNeighborhoods(false);
-            }
-        };
-        fetchNeighborhoods();
-    }, [toast]); // This should probably depend on selectedWardId if filtering
+        fetchWards(debouncedWardSearchTerm);
+    }, [fetchWards, debouncedWardSearchTerm]);
+
+    // Fetch Neighborhoods based on search term
+    const fetchNeighborhoods = useCallback(async (searchQuery: string = '') => {
+        setLoadingNeighborhoods(true);
+        try {
+            // FIX: Removed leading slash
+            const response = await api.get(`neighborhood-tags/?search=${searchQuery}`);
+            setNeighborhoods(response.data.map((item: any) => ({ label: item.name, value: item.id })));
+        } catch (error) {
+            console.error("Failed to fetch neighborhoods:", error);
+            toast({
+                title: "Error",
+                description: "Failed to load neighborhoods.",
+                variant: "destructive",
+            });
+        } finally {
+            setLoadingNeighborhoods(false);
+        }
+    }, [toast]); 
+
+    useEffect(() => {
+        fetchNeighborhoods(debouncedNeighborhoodSearchTerm);
+    }, [fetchNeighborhoods, debouncedNeighborhoodSearchTerm]);
 
     // Propagate changes up to the parent component
     useEffect(() => {
@@ -154,17 +185,23 @@ export function LocationSelector({
         setSelectedSubCountyId(''); // Reset dependent fields
         setSelectedWardId('');
         setSelectedNeighborhoodId('');
+        setSubCountySearchTerm(''); // Clear search terms for dependent fields
+        setWardSearchTerm('');
+        setNeighborhoodSearchTerm('');
     };
 
     const handleSubCountyChange = (value: string) => {
         setSelectedSubCountyId(value);
         setSelectedWardId(''); // Reset dependent fields
         setSelectedNeighborhoodId('');
+        setWardSearchTerm('');
+        setNeighborhoodSearchTerm('');
     };
 
     const handleWardChange = (value: string) => {
         setSelectedWardId(value);
         setSelectedNeighborhoodId(''); // Reset dependent fields
+        setNeighborhoodSearchTerm('');
     };
 
     const handleNeighborhoodChange = (value: string) => {
@@ -179,6 +216,7 @@ export function LocationSelector({
                     options={counties}
                     value={selectedCountyId}
                     onChange={handleCountyChange}
+                    onSearchChange={setCountySearchTerm} // Pass search term handler
                     placeholder={loadingCounties ? "Loading..." : "Select County"}
                     searchPlaceholder="Search county..."
                     emptyPlaceholder="No county found."
@@ -191,6 +229,7 @@ export function LocationSelector({
                     options={subCounties}
                     value={selectedSubCountyId}
                     onChange={handleSubCountyChange}
+                    onSearchChange={setSubCountySearchTerm} // Pass search term handler
                     placeholder={loadingSubCounties ? "Loading..." : "Select Sub-county"}
                     searchPlaceholder="Search sub-county..."
                     emptyPlaceholder="No sub-county found."
@@ -203,6 +242,7 @@ export function LocationSelector({
                     options={wards}
                     value={selectedWardId}
                     onChange={handleWardChange}
+                    onSearchChange={setWardSearchTerm} // Pass search term handler
                     placeholder={loadingWards ? "Loading..." : "Select Ward"}
                     searchPlaceholder="Search ward..."
                     emptyPlaceholder="No ward found."
@@ -215,6 +255,7 @@ export function LocationSelector({
                     options={neighborhoods}
                     value={selectedNeighborhoodId}
                     onChange={handleNeighborhoodChange}
+                    onSearchChange={setNeighborhoodSearchTerm} // Pass search term handler
                     placeholder={loadingNeighborhoods ? "Loading..." : "Select Neighborhood"}
                     searchPlaceholder="Search neighborhood..."
                     emptyPlaceholder="No neighborhood found."

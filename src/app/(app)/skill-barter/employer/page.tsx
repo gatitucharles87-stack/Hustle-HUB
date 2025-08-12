@@ -5,52 +5,54 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { MakeOfferDialog } from "@/components/make-offer-dialog";
 import { useToast } from "@/hooks/use-toast";
+import api from "@/lib/api";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface BarterPost {
     id: string;
     title: string;
-    author: string;
-    skillsOffered: string[];
-    skillsSought: string[];
-    postedDate: string;
+    user: { // Updated to match UserSerializer structure
+        id: string;
+        full_name: string;
+        // Add other user fields if needed for display, e.g., avatar_url
+    };
+    description: string; // Add description
+    skills_offered: string[]; // Renamed to match backend
+    skills_wanted: string[]; // Renamed to match backend
+    created_at: string; // Renamed to match backend
+    is_active: boolean; // Add is_active field
 }
 
 export default function EmployerSkillBarterPage() {
     const [posts, setPosts] = useState<BarterPost[]>([]);
+    const [loading, setLoading] = useState(true);
     const [isMakeOfferDialogOpen, setIsMakeOfferDialogOpen] = useState(false);
     const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
     const { toast } = useToast();
 
-    useEffect(() => {
-        // Simulate fetching data
-        const fetchPosts = async () => {
-            // In a real application, you would fetch from an API
-            const mockBarterPosts: BarterPost[] = [
-                {
-                    id: "bp-1",
-                    title: "Offering Web Dev for SEO Services",
-                    author: "John Doe",
-                    skillsOffered: ["React", "Next.js", "Node.js"],
-                    skillsSought: ["SEO", "Content Strategy"],
-                    postedDate: "2024-07-29",
-                },
-                {
-                    id: "bp-2",
-                    title: "Graphic Design for Social Media Management",
-                    author: "Jane Smith",
-                    skillsOffered: ["Logo Design", "Illustration"],
-                    skillsSought: ["Social Media Marketing"],
-                    postedDate: "2024-07-28",
-                },
-            ];
-            setPosts(mockBarterPosts);
-        };
+    const fetchBarterPosts = useCallback(async () => {
+        setLoading(true);
+        try {
+            const response = await api.get('/skill-barter-posts/');
+            setPosts(response.data);
+        } catch (error) {
+            console.error("Failed to fetch barter posts:", error);
+            toast({
+                title: "Error",
+                description: "Failed to load skill barter posts.",
+                variant: "destructive",
+            });
+        } finally {
+            setLoading(false);
+        }
+    }, [toast]);
 
-        fetchPosts();
-    }, []);
+    useEffect(() => {
+        fetchBarterPosts();
+    }, [fetchBarterPosts]);
 
     const handleMakeOfferClick = (postId: string) => {
         setSelectedPostId(postId);
@@ -60,6 +62,15 @@ export default function EmployerSkillBarterPage() {
     const handleCloseMakeOfferDialog = () => {
         setIsMakeOfferDialogOpen(false);
         setSelectedPostId(null);
+    };
+
+    const handleOfferSubmitted = () => {
+        handleCloseMakeOfferDialog();
+        toast({
+            title: "Offer Sent",
+            description: "Your offer has been successfully sent!",
+        });
+        fetchBarterPosts(); // Refresh posts after an offer is made
     };
 
     return (
@@ -73,31 +84,50 @@ export default function EmployerSkillBarterPage() {
                     <Button asChild variant="outline">
                         <Link href="/skill-barter/employer/my-applications">My Barter Applications</Link>
                     </Button>
-                    <BarterPostDialog>
+                    <BarterPostDialog onPostCreated={fetchBarterPosts}> {/* Pass callback here */}
                         <Button>Create New Barter Post</Button>
                     </BarterPostDialog>
                 </div>
             </div>
 
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {posts.length > 0 ? (
+                {loading ? (
+                    Array.from({ length: 3 }).map((_, i) => (
+                        <Card key={i}>
+                            <CardHeader>
+                                <Skeleton className="h-6 w-3/4 mb-2" />
+                                <Skeleton className="h-4 w-1/2" />
+                            </CardHeader>
+                            <CardContent>
+                                <Skeleton className="h-4 w-full mb-2" />
+                                <Skeleton className="h-4 w-full" />
+                                <Skeleton className="h-4 w-3/4 mt-4" />
+                                <Skeleton className="h-4 w-1/2" />
+                            </CardContent>
+                            <CardFooter>
+                                <Skeleton className="h-10 w-full" />
+                            </CardFooter>
+                        </Card>
+                    ))
+                ) : posts.length > 0 ? (
                     posts.map((post) => (
                         <Card key={post.id}>
                             <CardHeader>
                                 <CardTitle>{post.title}</CardTitle>
-                                <CardDescription>by {post.author} - Posted on {post.postedDate}</CardDescription>
+                                <CardDescription>by {post.user.full_name} - Posted on {new Date(post.created_at).toLocaleDateString()}</CardDescription>
                             </CardHeader>
                             <CardContent>
+                                <p className="text-sm text-muted-foreground mb-4 line-clamp-3">{post.description}</p>
                                 <div>
                                     <h4 className="font-semibold mb-2">Skills Offered:</h4>
                                     <div className="flex flex-wrap gap-2">
-                                        {post.skillsOffered.map(skill => <Badge key={skill}>{skill}</Badge>)}
+                                        {post.skills_offered.map(skill => <Badge key={skill}>{skill}</Badge>)}
                                     </div>
                                 </div>
                                 <div className="mt-4">
                                     <h4 className="font-semibold mb-2">Skills Sought:</h4>
                                     <div className="flex flex-wrap gap-2">
-                                        {post.skillsSought.map(skill => <Badge key={skill} variant="secondary">{skill}</Badge>)}
+                                        {post.skills_wanted.map(skill => <Badge key={skill} variant="secondary">{skill}</Badge>)}
                                     </div>
                                 </div>
                             </CardContent>
@@ -116,6 +146,7 @@ export default function EmployerSkillBarterPage() {
                     postId={selectedPostId}
                     isOpen={isMakeOfferDialogOpen}
                     onClose={handleCloseMakeOfferDialog}
+                    onOfferSubmitted={handleOfferSubmitted} // Pass callback to refresh posts
                 />
             )}
         </div>

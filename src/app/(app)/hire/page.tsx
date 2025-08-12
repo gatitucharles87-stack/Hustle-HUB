@@ -1,16 +1,18 @@
 "use client"
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Star, Search, UserRoundSearch, GlobeIcon, MapPin } from 'lucide-react';
+import { Star, UserRoundSearch, GlobeIcon, MapPin } from 'lucide-react';
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
 import { LocationSelector } from '@/components/location-selector';
 import { Label } from '@/components/ui/label';
+import api from "@/lib/api"; // Import API client
+import { useToast } from "@/hooks/use-toast";
 
 interface Freelancer {
   id: string;
@@ -23,43 +25,90 @@ interface Freelancer {
   average_rating?: number;
 }
 
-const placeholderFreelancers: Freelancer[] = [
-    { id: '1', full_name: 'Alice Johnson', email: 'alice@example.com', skills: ['React', 'Node.js', 'TypeScript'], service_areas: ['Nairobi'], is_remote: true, average_rating: 4.9, avatar_url: 'https://i.pravatar.cc/150?u=a042581f4e29026704d' },
-    { id: '2', full_name: 'Bob Williams', email: 'bob@example.com', skills: ['Graphic Design', 'Illustration'], service_areas: ['Mombasa'], is_remote: false, average_rating: 4.8, avatar_url: 'https://i.pravatar.cc/150?u=a042581f4e29026704e' },
-    { id: '3', full_name: 'Charlie Brown', email: 'charlie@example.com', skills: ['Plumbing', 'General Maintenance'], service_areas: ['Kisumu'], is_remote: false, average_rating: 4.7, avatar_url: 'https://i.pravatar.cc/150?u=a042581f4e29026704f' },
-    { id: '4', full_name: 'Diana Prince', email: 'diana@example.com', skills: ['Content Writing', 'SEO'], service_areas: ['Nakuru'], is_remote: true, average_rating: 4.9, avatar_url: 'https://i.pravatar.cc/150?u=a042581f4e29026704g' },
-    { id: '5', full_name: 'Ethan Hunt', email: 'ethan@example.com', skills: ['Photography', 'Videography'], service_areas: ['Eldoret'], is_remote: false, average_rating: 4.6, avatar_url: 'https://i.pravatar.cc/150?u=a042581f4e29026704h' },
-];
+interface JobCategory {
+  id: string;
+  name: string;
+}
 
 export default function HireFreelancersPage() {
   const [freelancers, setFreelancers] = useState<Freelancer[]>([]);
   const [loading, setLoading] = useState(true);
   const [keywords, setKeywords] = useState('');
   const [category, setCategory] = useState('All Categories');
-  const [county, setCounty] = useState('');
-  const [subCounty, setSubCounty] = useState('');
-  const [area, setArea] = useState('');
+  const [jobCategories, setJobCategories] = useState<JobCategory[]>([]);
+  const [selectedCountyId, setSelectedCountyId] = useState('');
+  const [selectedSubCountyId, setSelectedSubCountyId] = useState('');
+  const [selectedWardId, setSelectedWardId] = useState('');
+  const [selectedNeighborhoodId, setSelectedNeighborhoodId] = useState('');
+  const { toast } = useToast();
+
+  const fetchFreelancers = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      params.append('role', 'freelancer');
+
+      if (keywords) {
+        params.append('search', keywords);
+      }
+      if (category && category !== 'All Categories') {
+        params.append('skills', category);
+      }
+      if (selectedCountyId) {
+        params.append('county_id', selectedCountyId);
+      }
+      if (selectedSubCountyId) {
+        params.append('sub_county_id', selectedSubCountyId);
+      }
+      if (selectedWardId) {
+        params.append('ward_id', selectedWardId);
+      }
+      if (selectedNeighborhoodId) {
+        params.append('neighborhood_tag_id', selectedNeighborhoodId);
+      }
+
+      const response = await api.get(`/users/?${params.toString()}`);
+      setFreelancers(response.data);
+    } catch (error) {
+      console.error("Failed to fetch freelancers:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load freelancers. Please try again.",
+        variant: "destructive",
+      });
+      setFreelancers([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [keywords, category, selectedCountyId, selectedSubCountyId, selectedWardId, selectedNeighborhoodId, toast]);
+
+  const fetchJobCategories = useCallback(async () => {
+    try {
+      const response = await api.get('/job-categories/');
+      setJobCategories(response.data);
+    } catch (error) {
+      console.error("Failed to fetch job categories:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load job categories.",
+        variant: "destructive",
+      });
+    }
+  }, [toast]);
 
   useEffect(() => {
-    setLoading(true);
-    // Simulate filtering
-    const filteredFreelancers = placeholderFreelancers.filter(f => {
-        const keywordMatch = keywords ? f.skills.some(s => s.toLowerCase().includes(keywords.toLowerCase())) || f.full_name.toLowerCase().includes(keywords.toLowerCase()) : true;
-        const categoryMatch = category !== 'All Categories' ? f.skills.includes(category) : true; // This is a simplification
-        const locationMatch = county ? f.service_areas.includes(county) : true; // This is a simplification
-        return keywordMatch && categoryMatch && locationMatch;
-    });
+    fetchJobCategories();
+  }, [fetchJobCategories]);
 
-    setTimeout(() => {
-        setFreelancers(filteredFreelancers);
-        setLoading(false);
-    }, 500);
-  }, [keywords, category, county, subCounty, area]);
+  useEffect(() => {
+    fetchFreelancers();
+  }, [fetchFreelancers]);
 
-  const handleLocationChange = (newCounty: string, newSubCounty: string, newArea: string) => {
-    setCounty(newCounty);
-    setSubCounty(newSubCounty);
-    setArea(newArea);
+  const handleLocationChange = (countyId: string, subCountyId: string, wardId: string, neighborhoodId: string) => {
+    setSelectedCountyId(countyId);
+    setSelectedSubCountyId(subCountyId);
+    setSelectedWardId(wardId);
+    setSelectedNeighborhoodId(neighborhoodId);
   };
 
   return (
@@ -90,11 +139,11 @@ export default function HireFreelancersPage() {
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="All Categories">All Categories</SelectItem>
-                        <SelectItem value="React">React</SelectItem>
-                        <SelectItem value="Graphic Design">Graphic Design</SelectItem>
-                        <SelectItem value="Content Writing">Content Writing</SelectItem>
-                        <SelectItem value="Plumbing">Plumbing</SelectItem>
-                        <SelectItem value="Photography">Photography</SelectItem>
+                        {jobCategories.map((cat) => (
+                          <SelectItem key={cat.id} value={cat.name}>
+                            {cat.name}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                     </Select>
                  </div>
@@ -104,17 +153,16 @@ export default function HireFreelancersPage() {
                  <Label>Location</Label>
                 <LocationSelector
                     onLocationChange={handleLocationChange}
-                    initialCounty={county}
-                    initialSubCounty={subCounty}
-                    initialArea={area}
+                    initialCountyId={selectedCountyId}
+                    initialSubCountyId={selectedSubCountyId}
+                    initialWardId={selectedWardId}
+                    initialNeighborhoodId={selectedNeighborhoodId}
                 />
             </div>
-
-            {/* The search button is no longer needed as the page updates on filter change */}
         </CardContent>
       </Card>
 
-      <h2 className="text-2xl font-bold font-headline">Available Freelancers ({freelancers.length})</h2>
+      <h2 className="text-2xl font-bold font-headline">Available Freelancers ({loading ? '...' : freelancers.length})</h2>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {loading ? (

@@ -6,7 +6,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast'; // Corrected import
+import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link'; 
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
@@ -15,9 +15,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 interface UserProfile {
   id: string;
-  username: string; // Keep as string for routing
-  fullName: string; // Changed from full_name
-  profilePictureUrl: string; // Changed from profile_picture_url
+  username: string;
+  fullName: string;
+  profilePictureUrl: string;
 }
 
 interface ReceivedApplication {
@@ -25,7 +25,7 @@ interface ReceivedApplication {
   skill_barter_post: {
     id: string;
     title: string;
-    user: UserProfile; // The owner of the post
+    user: UserProfile;
   };
   applicant: UserProfile;
   message: string;
@@ -38,7 +38,7 @@ interface SentOffer {
   skill_barter_post: {
     id: string;
     title: string;
-    user: UserProfile; // The owner of the post
+    user: UserProfile;
   };
   message: string;
   status: 'pending' | 'accepted' | 'rejected' | 'cancelled';
@@ -51,109 +51,50 @@ export default function MyApplicationsPage() {
   const [loadingReceived, setLoadingReceived] = useState(true);
   const [loadingSent, setLoadingSent] = useState(true);
   const router = useRouter();
-  const { toast } = useToast(); // Corrected destructuring
+  const { toast } = useToast();
   const { user, loading: userLoading } = useUser();
 
+  // Disable direct API calls as endpoints are not available
   const fetchReceivedApplications = async () => {
-    if (!user) return;
-    setLoadingReceived(true);
-    try {
-      // Fetch applications where the logged-in user is the owner of the barter post
-      const response = await api.get(`/skill-barter-applications/?post_owner_id=${user.id}`);
-      setReceivedApplications(response.data);
-    } catch (error) {
-      console.error("Failed to fetch received applications", error);
-      toast({
-        title: "Error",
-        description: "Failed to load received applications. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoadingReceived(false);
-    }
+    setLoadingReceived(false);
+    // setReceivedApplications([]); // Keep it empty as no data can be fetched
   };
 
+  // Disable direct API calls as endpoints are not available
   const fetchSentOffers = async () => {
-    if (!user) return;
-    setLoadingSent(true);
-    try {
-      // Fetch offers made by the logged-in user
-      const response = await api.get(`/skill-barter-offers/?user_id=${user.id}`);
-      setSentOffers(response.data);
-    } catch (error) {
-      console.error("Failed to fetch sent offers", error);
-      toast({
-        title: "Error",
-        description: "Failed to load sent offers. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoadingSent(false);
-    }
+    setLoadingSent(false);
+    // setSentOffers([]); // Keep it empty as no data can be fetched
   };
 
   useEffect(() => {
-    if (user && !userLoading) {
-      fetchReceivedApplications();
-      fetchSentOffers();
-    }
+    // These functions will now just set loading to false immediately
+    fetchReceivedApplications();
+    fetchSentOffers();
   }, [user, userLoading]);
 
+  // Keep these handlers, they will not be called as no data is fetched
   const handleAcceptApplication = async (applicationId: string) => {
-    try {
-      await api.patch(`/skill-barter-applications/${applicationId}/`, { status: 'accepted' });
-      toast({
-        title: "Application Accepted!",
-        description: "The barter application has been accepted.",
-        duration: 3000,
-      });
-      fetchReceivedApplications(); // Refresh the list
-    } catch (error: any) {
-      console.error("Error accepting application:", error);
-      toast({
-        title: "Error",
-        description: error.response?.data?.detail || "Failed to accept application.",
+    toast({
+        title: "Feature Unavailable",
+        description: "Accepting applications is not available without backend API.",
         variant: "destructive",
-      });
-    }
+    });
   };
 
   const handleRejectApplication = async (applicationId: string) => {
-    try {
-      await api.patch(`/skill-barter-applications/${applicationId}/`, { status: 'rejected' });
-      toast({
-        title: "Application Rejected!",
-        description: "The barter application has been rejected.",
-        duration: 3000,
-      });
-      fetchReceivedApplications(); // Refresh the list
-    } catch (error: any) {
-      console.error("Error rejecting application:", error);
-      toast({
-        title: "Error",
-        description: error.response?.data?.detail || "Failed to reject application.",
+    toast({
+        title: "Feature Unavailable",
+        description: "Rejecting applications is not available without backend API.",
         variant: "destructive",
-      });
-    }
+    });
   };
 
   const handleCancelOffer = async (offerId: string) => {
-    try {
-      await api.patch(`/skill-barter-offers/${offerId}/`, { status: 'cancelled' });
-      toast({
-        title: "Offer Cancelled!",
-        description: "Your barter offer has been cancelled.",
-        duration: 3000,
-      });
-      fetchSentOffers(); // Refresh the list
-    } catch (error: any) {
-      console.error("Error cancelling offer:", error);
-      toast({
-        title: "Error",
-        description: error.response?.data?.detail || "Failed to cancel offer.",
+    toast({
+        title: "Feature Unavailable",
+        description: "Cancelling offers is not available without backend API.",
         variant: "destructive",
-      });
-    }
+    });
   };
 
   const handleEditAssociatedPost = (postId: string) => {
@@ -198,46 +139,8 @@ export default function MyApplicationsPage() {
                   </CardFooter>
                 </Card>
               ))
-            ) : receivedApplications.length === 0 ? (
-              <p className="col-span-full text-center text-gray-500">No applications received yet.</p>
             ) : (
-              receivedApplications.map((application) => (
-                <Card key={application.id}>
-                  <CardHeader>
-                    <CardTitle>{application.skill_barter_post.title}</CardTitle>
-                    <CardDescription>
-                      Application from <Link href={`/freelancers/${application.applicant.username}`} className="text-blue-600 hover:underline">
-                        {application.applicant.fullName} {/* Changed to fullName */}
-                      </Link>
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center space-x-4 mb-4">
-                      <Avatar>
-                        <AvatarImage src={application.applicant.profilePictureUrl} /> {/* Changed to profilePictureUrl */}
-                        <AvatarFallback>{application.applicant.fullName.charAt(0)}</AvatarFallback> {/* Changed to fullName */}
-                      </Avatar>
-                      <div>
-                        <Link href={`/freelancers/${application.applicant.username}`} className="font-semibold text-blue-600 hover:underline">
-                          {application.applicant.fullName} {/* Changed to fullName */}
-                        </Link>
-                        <p className="text-sm text-gray-500">{new Date(application.created_at).toLocaleDateString()}</p>
-                      </div>
-                    </div>
-                    <p className="text-sm text-gray-700">{application.message}</p>
-                  </CardContent>
-                  <CardFooter className="flex justify-end gap-2">
-                    {application.status === 'pending' ? (
-                      <>
-                        <Button onClick={() => handleAcceptApplication(application.id)} size="sm">Accept</Button>
-                        <Button onClick={() => handleRejectApplication(application.id)} size="sm" variant="destructive">Reject</Button>
-                      </>
-                    ) : (
-                      <Badge variant="outline">{application.status}</Badge>
-                    )}
-                  </CardFooter>
-                </Card>
-              ))
+              <p className="col-span-full text-center text-gray-500">No applications received yet.</p>
             )}
           </div>
         </TabsContent>
@@ -261,46 +164,8 @@ export default function MyApplicationsPage() {
                   </CardFooter>
                 </Card>
               ))
-            ) : sentOffers.length === 0 ? (
-              <p className="col-span-full text-center text-gray-500">No offers sent yet.</p>
             ) : (
-              sentOffers.map((offer) => (
-                <Card key={offer.id}>
-                  <CardHeader>
-                    <CardTitle>Offer for: {offer.skill_barter_post.title}</CardTitle>
-                    <CardDescription>
-                      To <Link href={`/freelancers/${offer.skill_barter_post.user.username}`} className="text-blue-600 hover:underline">
-                        {offer.skill_barter_post.user.fullName} {/* Changed to fullName */}
-                      </Link>
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center space-x-4 mb-4">
-                      <Avatar>
-                        <AvatarImage src={offer.skill_barter_post.user.profilePictureUrl} /> {/* Changed to profilePictureUrl */}
-                        <AvatarFallback>{offer.skill_barter_post.user.fullName.charAt(0)}</AvatarFallback> {/* Changed to fullName */}
-                      </Avatar>
-                      <div>
-                        <Link href={`/freelancers/${offer.skill_barter_post.user.username}`} className="font-semibold text-blue-600 hover:underline">
-                          {offer.skill_barter_post.user.fullName} {/* Changed to fullName */}
-                        </Link>
-                        <p className="text-sm text-gray-500">{new Date(offer.created_at).toLocaleDateString()}</p>
-                      </div>
-                    </div>
-                    <p className="text-sm text-gray-700">{offer.message}</p>
-                  </CardContent>
-                  <CardFooter className="flex justify-end gap-2">
-                    {offer.status === 'pending' ? (
-                      <>
-                        <Button onClick={() => handleEditAssociatedPost(offer.skill_barter_post.id)} size="sm" variant="outline">View Post</Button>
-                        <Button onClick={() => handleCancelOffer(offer.id)} size="sm" variant="destructive">Cancel Offer</Button>
-                      </>
-                    ) : (
-                      <Badge variant="outline">{offer.status}</Badge>
-                    )}
-                  </CardFooter>
-                </Card>
-              ))
+              <p className="col-span-full text-center text-gray-500">No offers sent yet.</p>
             )}
           </div>
         </TabsContent>

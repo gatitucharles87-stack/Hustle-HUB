@@ -9,6 +9,7 @@ import {
   type GenerateBarterPostOutput,
 } from '@/ai/flows/generate-barter-post';
 import { z } from 'zod';
+import api from '@/lib/api'; // Assuming api client can be used server-side
 
 const barterPostFormSchema = z.object({
   skillsToOffer: z.string().min(1, 'Skills to offer are required.'),
@@ -23,6 +24,30 @@ const updateBarterPostSchema = z.object({
   description: z.string().min(1, 'Description is required.'),
 });
 
+const jobPostSchema = z.object({
+  title: z.string().min(1, 'Job title is required.'),
+  description: z.string().min(1, 'Job description is required.'),
+  skills: z.string().min(1, 'Skills are required.'),
+  experience: z.string().min(1, 'Experience level is required.'),
+  category: z.string().min(1, 'Category is required.'),
+  jobType: z.enum(['remote', 'local']),
+  location: z.string().optional(),
+  budget: z.preprocess(
+    (val) => (val === '' ? null : Number(val)),
+    z.number().min(0).nullable().optional()
+  ),
+  deadline: z.string().optional(), // Date string in YYYY-MM-DD format
+}).refine(data => {
+    if (data.jobType === 'local') {
+        return !!data.location && data.location.length > 0;
+    }
+    return true;
+}, {
+    message: 'Location is required for local jobs.',
+    path: ['location'],
+});
+
+
 export type JobPostFormState = {
   message: string;
   errors?: {
@@ -31,8 +56,28 @@ export type JobPostFormState = {
     location?: string[];
     category?: string[];
     jobType?: string[];
+    title?: string[];
+    description?: string[];
+    budget?: string[];
+    deadline?: string[];
   } | null;
   data: GenerateJobPostOutput | null;
+};
+
+export type PostJobState = {
+  message: string;
+  success: boolean;
+  errors?: {
+    title?: string[];
+    description?: string[];
+    skills?: string[];
+    experience?: string[];
+    category?: string[];
+    jobType?: string[];
+    location?: string[];
+    budget?: string[];
+    deadline?: string[];
+  } | null;
 };
 
 export type BarterPostFormState = {
@@ -93,6 +138,72 @@ export async function generateJobPostAction(
       message: `An unexpected error occurred while generating the post: ${errorMessage}`,
       errors: null,
       data: null,
+    };
+  }
+}
+
+export async function postJobAction(
+  prevState: PostJobState,
+  formData: FormData
+): Promise<PostJobState> {
+  const rawFormData = {
+    title: formData.get('title'),
+    description: formData.get('description'),
+    skills: formData.get('skills'),
+    experience: formData.get('experience'),
+    category: formData.get('category'),
+    jobType: formData.get('jobType'),
+    location: formData.get('location'),
+    budget: formData.get('budget'),
+    deadline: formData.get('deadline'),
+  };
+
+  const validatedFields = jobPostSchema.safeParse(rawFormData);
+
+  if (!validatedFields.success) {
+    return {
+      message: 'Invalid form data.',
+      errors: validatedFields.error.flatten().fieldErrors,
+      success: false,
+    };
+  }
+
+  const { title, description, skills, experience, category, jobType, location, budget, deadline } = validatedFields.data;
+
+  try {
+    const response = await api.post('/jobs/', {
+      title,
+      description,
+      skills: skills.split(',').map(s => s.trim()), // Convert comma-separated string to array
+      experience_level: experience, // Assuming backend uses experience_level
+      category: category, // This needs to be the category ID from backend
+      job_type: jobType,
+      location: jobType === 'remote' ? 'Remote' : location, // Ensure 'Remote' if remote
+      budget,
+      deadline,
+    });
+
+    if (response.status === 201) {
+      return {
+        message: 'Job posted successfully!',
+        success: true,
+        errors: null,
+      };
+    } else {
+      return {
+        message: response.data.message || 'Failed to post job.',
+        success: false,
+        errors: response.data.errors || null,
+      };
+    }
+  } catch (error: any) {
+    console.error("Error posting job:", error);
+    const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred.';
+    const errorErrors = error.response?.data?.errors || null;
+    return {
+      message: `Failed to post job: ${errorMessage}`,
+      success: false,
+      errors: errorErrors,
     };
   }
 }

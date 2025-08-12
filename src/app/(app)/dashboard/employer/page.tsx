@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react"; // Import useCallback
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { PenSquare, Repeat, Users, Rocket, TrendingUp, Handshake, Briefcase, PlusCircle, Search, DollarSign } from "lucide-react";
+import { PenSquare, Repeat, Users, Rocket, TrendingUp, Handshake, Briefcase, PlusCircle, Search } from "lucide-react";
 import Link from "next/link";
 import {
   Table,
@@ -36,22 +36,10 @@ interface Job {
   } | null;
 }
 
-// Define the structure of a CommissionLog object (aligned with backend response)
-interface CommissionLog {
-  id: string;
-  amount: string; // Amount can be decimal, so string or number
-  currency: string;
-  status: 'paid' | 'due' | 'overdue' | 'waived';
-  due_date: string;
-  job_title: string;
-}
-
 export default function EmployerDashboardPage() {
   const { user, loading: userLoading } = useUser();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loadingJobs, setLoadingJobs] = useState(true);
-  const [commissionLogs, setCommissionLogs] = useState<CommissionLog[]>([]);
-  const [loadingCommissions, setLoadingCommissions] = useState(true);
   const { toast } = useToast();
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [selectedJobForReview, setSelectedJobForReview] = useState<Job | null>(null);
@@ -59,7 +47,6 @@ export default function EmployerDashboardPage() {
   const fetchEmployerData = useCallback(async () => {
     if (!user) {
       setLoadingJobs(false);
-      setLoadingCommissions(false);
       return;
     }
 
@@ -77,22 +64,6 @@ export default function EmployerDashboardPage() {
       });
     } finally {
       setLoadingJobs(false);
-    }
-
-    // Fetch Commission Logs
-    setLoadingCommissions(true);
-    try {
-      const commissionsResponse = await api.get(`/commission-logs/?employer=${user.id}`);
-      setCommissionLogs(commissionsResponse.data);
-    } catch (error) {
-      console.error("Failed to fetch commission logs:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load your commission logs.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoadingCommissions(false);
     }
   }, [user, toast]); // user is in dependency array
 
@@ -114,9 +85,6 @@ export default function EmployerDashboardPage() {
     });
     fetchEmployerData(); // Refresh data after review submission
   };
-
-  const dueCommissions = commissionLogs.filter((log: CommissionLog) => log.status === 'due' || log.status === 'overdue');
-  const hasDueCommissions = dueCommissions.length > 0;
 
   if (userLoading) {
     return (
@@ -163,7 +131,7 @@ export default function EmployerDashboardPage() {
       {/* Integrated Welcome and Call-to-action Section */}
       <Card className="col-span-full bg-card shadow-lg border-b-2 border-primary p-6 md:p-8 lg:p-10 text-center">
         <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl font-headline text-foreground mb-2">
-          Welcome, {user?.fullName || "Employer"}! {/* Changed to fullName */}
+          Welcome, {user?.fullName || "Employer"}!
         </h1>
         <p className="text-lg md:text-xl text-foreground max-w-3xl mx-auto mb-4">
           <TypingText words={["Find Your Next Talent.", "Post Your Perfect Job.", "Fostering Your Team's Growth."]} speed={100} delay={2000} />
@@ -318,50 +286,6 @@ export default function EmployerDashboardPage() {
             </CardContent>
         </Card>
       </div>
-
-      {/* Commissions Card - Moved out of the grid to be more prominent or flexible */}
-      <Card className="col-span-full">
-        <CardHeader>
-          <CardTitle className="font-headline flex items-center gap-2">
-            <DollarSign className="h-5 w-5 text-green-600" /> Outstanding Commissions
-          </CardTitle>
-          <CardDescription>
-            Track commissions due to HustleHub for completed projects.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {loadingCommissions ? (
-            <Skeleton className="h-20 w-full" />
-          ) : dueCommissions.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Job Title</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Due Date</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {dueCommissions.map((log) => (
-                  <TableRow key={log.id} className={log.status === 'overdue' ? 'bg-red-100 dark:bg-red-900' : ''}>
-                    <TableCell className="font-medium">{log.job_title}</TableCell>
-                    <TableCell>{log.amount} {log.currency}</TableCell>
-                    <TableCell>{new Date(log.due_date).toLocaleDateString()}</TableCell>
-                    <TableCell>
-                      <Badge variant={log.status === 'overdue' ? 'destructive' : 'default'}>
-                        {log.status.replace(/_/g, ' ')}
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          ) : (
-            <p className="text-muted-foreground">No outstanding commissions at the moment. Well done!</p>
-          )}
-        </CardContent>
-      </Card>
 
       {selectedJobForReview && (
         <Dialog open={isReviewModalOpen} onOpenChange={setIsReviewModalOpen}>

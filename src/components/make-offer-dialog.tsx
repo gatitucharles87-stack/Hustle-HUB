@@ -16,12 +16,13 @@ import { useToast } from "@/hooks/use-toast";
 import api from "@/lib/api"; // Import the centralized API client
 
 interface MakeOfferDialogProps {
-  postId: string; // Assuming skill barter post has an ID
+  postId: string;
   isOpen: boolean;
   onClose: () => void;
+  onOfferSubmitted: () => void; // Add this prop
 }
 
-export function MakeOfferDialog({ postId, isOpen, onClose }: MakeOfferDialogProps) {
+export function MakeOfferDialog({ postId, isOpen, onClose, onOfferSubmitted }: MakeOfferDialogProps) {
   const [offerMessage, setOfferMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -34,15 +35,15 @@ export function MakeOfferDialog({ postId, isOpen, onClose }: MakeOfferDialogProp
         message: offerMessage,
       });
 
-      if (response.status === 201) { // Assuming 201 Created for successful offer
+      if (response.status === 201) {
         toast({
           title: "Offer Submitted!",
           description: "Your offer has been successfully sent.",
         });
         setOfferMessage("");
+        onOfferSubmitted(); // Call the callback on success
         onClose();
       } else {
-        // This block might be redundant if Axios handles non-2xx as errors
         const errorData = response.data;
         toast({
           title: "Offer Failed",

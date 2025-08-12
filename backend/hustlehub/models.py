@@ -30,9 +30,11 @@ class CustomUserManager(BaseUserManager):
         if not username:
             raise ValueError('The username must be set')
 
-        referral_code = f"{slugify(username)}-{secrets.token_hex(3)}"
+        # Generate referral_code based on username and a random hex string
+        base_referral_code = slugify(username).replace('-', '') # Remove hyphens for cleaner URL
+        referral_code = f"{base_referral_code}-{secrets.token_hex(3)}"
         while self.model.objects.filter(referral_code=referral_code).exists():
-            referral_code = f"{slugify(username)}-{secrets.token_hex(3)}"
+            referral_code = f"{base_referral_code}-{secrets.token_hex(3)}"
         extra_fields['referral_code'] = referral_code
 
         user = self.model(email=email, **extra_fields)
@@ -311,12 +313,15 @@ class XPLog(models.Model):
 class Referral(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     referrer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='referrals_made')
-    referred_user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='referred_by')
+    referred_user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, related_name='referred_by', null=True, blank=True)
+    referred_user_email = models.EmailField(max_length=255, null=True, blank=True, help_text="Email of the user being referred")
     is_successful = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.referrer.email} referred {self.referred_user.email}"
+        if self.referred_user:
+            return f"{self.referrer.email} referred {self.referred_user.email}"
+        return f"{self.referrer.email} referred {self.referred_user_email or 'an unknown user'} (pending)"
 
 class LoyaltyPointLog(models.Model):
     SOURCE_CHOICES = (('job', 'Job Completion'), ('referral', 'Successful Referral'))

@@ -50,4 +50,51 @@ api.interceptors.response.use(
   }
 );
 
+export const getRecommendedJobs = async (categoryId?: string) => {
+  try {
+    const response = await api.get('/jobs/recommended/', {
+      params: { category: categoryId },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Failed to fetch recommended jobs:", error);
+    toast({
+      title: "Error",
+      description: "Failed to load recommended jobs. Please try again.",
+      variant: "destructive",
+    });
+    return [];
+  }
+};
+
+export const getJobCategories = async () => {
+  try {
+    const response = await api.get('/job-categories/');
+    return response.data;
+  } catch (error) {
+    console.error("Failed to fetch job categories:", error);
+    toast({
+      title: "Error",
+      description: "Failed to load job categories. Please try again.",
+      variant: "destructive",
+    });
+    return [];
+  }
+};
+
+export const getCommissionHistory = async () => {
+  try {
+    const response = await api.get('/commission-logs/');
+    return response.data;
+  } catch (error) {
+    console.error("Failed to fetch commission history:", error);
+    toast({
+      title: "Error",
+      description: "Failed to load commission history. Please try again.",
+      variant: "destructive",
+    });
+    return [];
+  }
+};
+
 export default api;

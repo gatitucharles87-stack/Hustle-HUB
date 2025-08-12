@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -28,16 +27,18 @@ type ComboboxProps = {
     searchPlaceholder?: string;
     emptyPlaceholder?: string;
     disabled?: boolean;
+    onSearchChange?: (searchQuery: string) => void; // New prop for handling search input changes
 }
 
-export function Combobox({ 
-    options, 
-    value, 
+export function Combobox({
+    options,
+    value,
     onChange,
     placeholder = "Select option...",
     searchPlaceholder = "Search...",
     emptyPlaceholder = "No results found.",
     disabled = false,
+    onSearchChange, // Destructure the new prop
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false)
 
@@ -59,7 +60,14 @@ export function Combobox({
       </PopoverTrigger>
       <PopoverContent className="w-full p-0" style={{width: "var(--radix-popover-trigger-width)"}}>
         <Command>
-          <CommandInput placeholder={searchPlaceholder} />
+          <CommandInput 
+            placeholder={searchPlaceholder} 
+            onValueChange={(searchValue) => {
+              if (onSearchChange) {
+                onSearchChange(searchValue);
+              }
+            }}
+          />
           <CommandList>
             <CommandEmpty>{emptyPlaceholder}</CommandEmpty>
             <CommandGroup>

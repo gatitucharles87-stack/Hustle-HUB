@@ -3,12 +3,14 @@ import os
 import json
 import logging
 from django.conf import settings
+from decouple import config
 
 logger = logging.getLogger(__name__)
 
 def configure_gemini():
     """Configures the Gemini API key."""
-    api_key = os.getenv("GEMINI_API_KEY")
+    # Use decouple.config to read from the .env file
+    api_key = config("GEMINI_API_KEY", default=None) 
     if not api_key:
         logger.critical("CRITICAL: GEMINI_API_KEY environment variable not set. The service cannot function.")
         raise ValueError("GEMINI_API_KEY environment variable not set.")

@@ -20,7 +20,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { TypingText } from "@/components/typing-text";
 import { Separator } from "@/components/ui/separator";
-import api from "@/lib/api";
+import api from "@/lib/api"; // Corrected import to default
 import { useUser } from "@/hooks/use-user";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -40,25 +40,26 @@ interface DashboardData {
   leaderboard_rank: number;
   commission_due_amount?: number;
   commission_days_left?: number;
-  commission_is_suspended?: boolean;
-  can_submit_excuse?: boolean; // For commission excuses
+  commission_is_suspended: boolean;
+  can_submit_excuse: boolean; 
   has_portfolio: boolean;
 }
 
-const badgeIcons: { [key: string]: React.ReactNode } = {
+const badgeIcons: { [key: string]: React.ReactNode } = (
+  {
   "Top Rated Freelancer": <Award className="text-yellow-500" />,
   "Quick Starter": <Zap className="text-blue-500" />,
   "Rising Talent": <TrendingUp className="text-green-500" />,
   "Loyalty King": <Gem className="text-purple-500" />,
-  // Add more mappings as needed
   "award": <Award className="text-yellow-500" />,
   "zap": <Zap className="text-blue-500" />,
   "trending_up": <TrendingUp className="text-green-500" />,
   "gem": <Gem className="text-purple-500" />,
-};
+  // Add more mappings as needed based on your backend badge icons
+});
 
 export default function FreelancerDashboardPage() {
-  const { user, loading: userLoading } = useUser();
+  const { user, loading: userLoading } = useUser(); // Removed token from destructuring
   const { toast } = useToast();
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [loadingDashboard, setLoadingDashboard] = useState(true);
@@ -67,13 +68,13 @@ export default function FreelancerDashboardPage() {
   const [isSubmittingExcuse, setIsSubmittingExcuse] = useState(false);
 
   const fetchDashboardData = useCallback(async () => {
-    if (!user) { // userLoading is handled by the skeleton, only check for user existence for data fetching
+    if (!user) { 
       setLoadingDashboard(false);
       return;
     }
     setLoadingDashboard(true);
     try {
-      const response = await api.get<DashboardData>(`/xp-logs/me/`); // Changed to /xp-logs/me/ as per API_ENDPOINTS.md
+      const response = await api.get<DashboardData>(`/dashboard-stats/`); // Removed headers
       setDashboardData(response.data);
     } catch (error) {
       console.error("Failed to fetch freelancer dashboard data:", error);
@@ -85,7 +86,7 @@ export default function FreelancerDashboardPage() {
     } finally {
       setLoadingDashboard(false);
     }
-  }, [user, toast]); // Removed userLoading from dependency array
+  }, [user, toast]); 
 
   useEffect(() => {
     fetchDashboardData();
@@ -98,16 +99,15 @@ export default function FreelancerDashboardPage() {
     }
     setIsSubmittingExcuse(true);
     try {
-      // Assuming an endpoint for submitting excuses for commissions
-      const response = await api.post("/commission-excuses/", { // Corrected endpoint to match API_ENDPOINTS.md
+      const response = await api.post("/commission-excuses/", { 
         reason: excuseReason,
-        user: user?.id, // Send user ID with the excuse
+        user: user?.id, 
       });
       if (response.status === 200 || response.status === 201) {
         toast({ title: "Success", description: "Your excuse has been submitted successfully." });
         setIsExcuseModalOpen(false);
         setExcuseReason("");
-        fetchDashboardData(); // Refresh dashboard data
+        fetchDashboardData(); 
       } else {
         const errorData = response.data;
         toast({
@@ -199,12 +199,14 @@ export default function FreelancerDashboardPage() {
     return <div className="text-center py-8 text-red-500">Error loading dashboard data.</div>;
   }
 
+  const isProfileIncomplete = !user?.bio || !user?.skills || user.skills.length === 0;
+
   return (
     <div className="flex flex-col gap-8">
       {/* Integrated Welcome and Call-to-Action Section */}
       <Card className="col-span-full bg-card shadow-lg border-b-2 border-primary p-6 md:p-8 lg:p-10 text-center">
         <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl font-headline text-foreground mb-2">
-          Welcome back, {user?.fullName || "Freelancer"}! {/* Changed to fullName */}
+          Welcome back, {user?.fullName || "Freelancer"}! 
         </h1>
         <p className="text-lg md:text-xl text-foreground max-w-3xl mx-auto mb-4">
           <TypingText words={["Showcase Your Talent.", "Find Your Next Gig.", "Grow Your Career."]} speed={100} delay={2000} />
@@ -230,13 +232,16 @@ export default function FreelancerDashboardPage() {
 
       <Separator className="my-4" />
       
-      {dashboardData.commission_due_amount && dashboardData.commission_due_amount > 0 && (
+      {dashboardData.commission_due_amount != null && dashboardData.commission_due_amount > 0 && (
         <Alert variant="destructive" className="shadow-md">
           <AlertTriangleIcon className="h-4 w-4" />
           <AlertTitle>Commission Payment Due!</AlertTitle>
           <AlertDescription>
-            You have an outstanding commission of ${dashboardData.commission_due_amount.toFixed(2)}. This is due within{" "}
-            <strong>{dashboardData.commission_days_left} days</strong> to avoid account suspension.
+            You have an outstanding commission of ${dashboardData.commission_due_amount.toFixed(2)}. This is due {" "}
+            {dashboardData.commission_days_left != null && dashboardData.commission_days_left < 0 ? 
+             <strong>{Math.abs(dashboardData.commission_days_left)} days overdue</strong> : 
+             <strong>within {dashboardData.commission_days_left} days</strong>}
+            to avoid account suspension.
             <div className="mt-2 flex gap-2">
               <Button variant="outline" size="sm" asChild>
                 <Link href="/commissions">View Commission Details</Link>
@@ -251,6 +256,21 @@ export default function FreelancerDashboardPage() {
               </Button>
             </div>
           </AlertDescription>
+        </Alert>
+      )}
+
+      {isProfileIncomplete && (
+        <Alert className="bg-blue-100 border-blue-400 text-blue-800 dark:bg-blue-900 dark:text-blue-200 shadow-md">
+            <Lightbulb className="h-4 w-4" />
+            <AlertTitle>Complete Your Profile to Get Job Recommendations!</AlertTitle>
+            <AlertDescription>
+                Your profile is missing a bio or skills. Completing it will significantly improve your chances of getting matched with relevant jobs.
+                <div className="mt-2">
+                    <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white" asChild>
+                        <Link href="/profile">Update Profile Now</Link>
+                    </Button>
+                </div>
+            </AlertDescription>
         </Alert>
       )}
 

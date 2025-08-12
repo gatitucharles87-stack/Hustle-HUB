@@ -37,9 +37,8 @@ export default function JobsPage() {
     search: "",
     category: "",
     county: "",
-    sub_county: "",
-    ward: "",
-    neighborhood: "", // Add neighborhood to filters
+    subCounty: "", // Changed from sub_county
+    area: "",       // Changed from neighborhood and ward
   });
 
   useEffect(() => {
@@ -62,11 +61,17 @@ export default function JobsPage() {
   }, []);
 
   const handleFilterChange = (name: string, value: string) => {
-    setFilters((prev) => ({ ...prev, [name]: value }));
+    setFilters((prev) => ({ ...prev, [name]: value === "all" ? "" : value }));
   };
 
   const handleLocationChange = (countyId: string, subCountyId: string, wardId: string, neighborhoodId: string) => {
-    setFilters((prev) => ({ ...prev, county: countyId, sub_county: subCountyId, ward: wardId, neighborhood: neighborhoodId }));
+    setFilters((prev) => ({
+      ...prev,
+      county: countyId,
+      subCounty: subCountyId, // Mapped to subCounty
+      area: neighborhoodId,    // Mapped neighborhoodId to area
+      // ward is not directly used as a filter for /jobs endpoint based on API_ENDPOINTS.md
+    }));
   };
 
   const handleSearch = async () => {
@@ -101,7 +106,7 @@ export default function JobsPage() {
                           <SelectValue placeholder="All Categories" />
                       </SelectTrigger>
                       <SelectContent>
-                          <SelectItem value="">All Categories</SelectItem>
+                          <SelectItem value="all">All Categories</SelectItem>
                           {categories.map((cat) => (
                             <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
                           ))}

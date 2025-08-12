@@ -1,11 +1,5 @@
-'use client';
+"use client";
 
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,72 +9,65 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import { CreditCard, LogOut, User } from "lucide-react";
 import Link from "next/link";
-import { ThemeToggle } from "./theme-toggle";
-import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
 import { useUser } from "@/hooks/use-user";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function UserNav() {
-  const pathname = usePathname();
-  const [userRole, setUserRole] = useState('freelancer');
-  const { user, logout } = useUser();
+  const { user, loading: userLoading, logout } = useUser();
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const role = sessionStorage.getItem('userRole');
-      if (role === 'employer' || role === 'freelancer') {
-        setUserRole(role);
-      }
-    }
-  }, [pathname]);
+  if (userLoading) {
+    return <Skeleton className="h-8 w-8 rounded-full" />;
+  }
+  
+  // Determine the billing link based on user's role
+  const billingLink = user?.role === 'employer' ? '/billing' : '/commissions';
 
-  const billingLink = userRole === 'employer' ? '/loyalty' : '/commissions';
-
-  return (
-    <div className="flex items-center gap-2">
-      <ThemeToggle />
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-            <Avatar className="h-8 w-8">
-              <AvatarImage src={user?.profilePictureUrl} alt={`@${user?.username}`} /> {/* Changed to profilePictureUrl */}
-              <AvatarFallback>{user?.username?.charAt(0).toUpperCase() || user?.fullName?.charAt(0).toUpperCase()}</AvatarFallback> {/* Added fallback to fullName */}
-            </Avatar>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-56" align="end" forceMount>
-          <DropdownMenuLabel className="font-normal">
-            <div className="flex flex-col space-y-1">
-              <p className="text-sm font-medium leading-none">{user?.fullName}</p> {/* Changed to fullName */}
-              <p className="text-xs leading-none text-muted-foreground">
-                {user?.email}
-              </p>
-            </div>
-          </DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuGroup>
-            <DropdownMenuItem asChild>
-              <Link href="/profile">
-                <User className="mr-2 h-4 w-4" />
-                <span>Profile</span>
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-               <Link href={billingLink}>
-                <CreditCard className="mr-2 h-4 w-4" />
-                <span>Billing</span>
-              </Link>
-            </DropdownMenuItem>
-          </DropdownMenuGroup>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={logout}>
-            <LogOut className="mr-2 h-4 w-4" />
-            <span>Log out</span>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
-  );
+  if (user) {
+    return (
+      <div className="flex items-center space-x-4">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+              <Avatar className="h-9 w-9">
+                <AvatarImage
+                  src={user.profilePictureUrl || undefined}
+                  alt={user.fullName || "User Avatar"}
+                />
+                <AvatarFallback>
+                  {user.fullName
+                    ? user.fullName.charAt(0).toUpperCase()
+                    : "?"}
+                </AvatarFallback>
+              </Avatar>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56" align="end">
+            <DropdownMenuLabel className="font-normal">
+              <div className="flex flex-col space-y-1">
+                <p className="text-sm font-medium leading-none">
+                  {user.fullName}
+                </p>
+                <p className="text-xs leading-none text-muted-foreground">
+                  {user.email}
+                </p>
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuGroup>
+              <DropdownMenuItem asChild>
+                <Link href="/profile">
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Profile</span>
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    );
+  }
 }

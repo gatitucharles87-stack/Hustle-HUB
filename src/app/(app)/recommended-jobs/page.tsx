@@ -1,80 +1,92 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Briefcase, MapPin, Sparkles } from "lucide-react";
-import Link from "next/link";
+import { useState, useEffect } from "react";
+import Link from 'next/link';
+import { useUser } from "@/hooks/use-user";
+import api, { getRecommendedJobs, getJobCategories } from "@/lib/api"; // Corrected api import, and added named imports
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Briefcase, Zap, Sparkles, AlertCircle, UserCheck } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
-import api from "@/lib/api"; // Import the centralized API client
-import { useUser } from "@/hooks/use-user"; // Import useUser hook
-import { Skeleton } from "@/components/ui/skeleton";
+import { RecommendedJobCard, RecommendedJob } from "@/components/recommended-job-card"; // Changed back to alias-based import
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; 
 
-interface RecommendedJob {
-  id: string;
-  title: string;
-  category: { name: string }; // Assuming category is an object with a name property
-  job_type: 'Local' | 'Remote' | 'Hybrid';
-  location: string;
-  tags: string[];
-  description: string;
-  matched_skills: string[];
+
+interface JobCategory {
+    id: string;
+    name: string;
 }
 
+// The main page component
 export default function RecommendedJobsPage() {
-  const [allJobs, setAllJobs] = useState<RecommendedJob[]>([]);
-  const [filteredJobs, setFilteredJobs] = useState<RecommendedJob[]>([]);
+  const { user, loading: userLoading } = useUser(); // Removed token from destructuring
+  const [allJobs, setAllJobs] = useState<RecommendedJob[]>([]); // To store all fetched jobs
+  const [filteredJobs, setFilteredJobs] = useState<RecommendedJob[]>([]); // For filtered display
   const [loading, setLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [error, setError] = useState<string | null>(null);
+  const [categories, setCategories] = useState<JobCategory[]>([]); // For job categories
+  const [selectedCategory, setSelectedCategory] = useState<string>("all"); // For category filter
   const { toast } = useToast();
-  const { user, loading: userLoading } = useUser(); // Get user context
 
   useEffect(() => {
-    const fetchRecommendedJobs = async () => {
-      if (!user || userLoading) return; // Wait for user to be loaded
+    // Only fetch jobs if we have a user and they are not loading
+    if (user && !userLoading) {
+      // Ensure the user is a freelancer before fetching
+      if (user.role !== 'freelancer') {
+        setError("Only freelancers can see job recommendations.");
+        setLoading(false);
+        return;
+      }
+      
+      // Ensure user profile is complete
+      if (!user.bio || !user.skills || user.skills.length === 0) { 
+          setError("Your profile is incomplete. Please add a bio and some skills to receive personalized job recommendations.");
+          setLoading(false);
+          return;
+      }
 
-      setLoading(true);
-      try {
-        const response = await api.get<RecommendedJob[]>(`/jobs/recommended/`); // User context is sent via token
-        setAllJobs(response.data);
-        setFilteredJobs(response.data); // Initially show all recommended jobs
-        if (response.data.length === 0) {
+      const fetchJobsAndCategories = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+          const [jobsResponse, categoriesResponse] = await Promise.all([
+            getRecommendedJobs(), // Use the imported function
+            getJobCategories() // Use the imported function
+          ]);
+          setAllJobs(jobsResponse);
+          setFilteredJobs(jobsResponse); // Initially display all jobs
+          setCategories(categoriesResponse);
+        } catch (err: any) {
+          console.error("Failed to fetch data for recommended jobs:", err);
+          setError("We couldn't load your recommendations right now. Please try again later.");
           toast({
-            title: "No Recommendations Yet",
-            description: "No new job recommendations based on your profile at this moment. Check back later!",
-            variant: "default"
+            title: "Error",
+            description: "Failed to fetch recommended jobs or categories.",
+            variant: "destructive"
           });
         }
-      } catch (error) {
-        console.error("Failed to fetch recommended jobs:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load recommended jobs. Please try again.",
-          variant: "destructive",
-        });
-      } finally {
+       finally {
+          setLoading(false);
+        }
+      };
+
+      fetchJobsAndCategories();
+    } else if (!userLoading) {
         setLoading(false);
-      }
-    };
+        setError("You must be logged in to view job recommendations.");
+    }
+  }, [user, userLoading, toast]); 
 
-    fetchRecommendedJobs();
-  }, [user, userLoading, toast]);
-
-  // Get unique categories for the filter dropdown
-  const categories = useMemo(() => {
-    const uniqueCategories = new Set<string>();
-    allJobs.forEach(job => uniqueCategories.add(job.category.name));
-    return ["all", ...Array.from(uniqueCategories)].sort();
-  }, [allJobs]);
-
-  // Filter jobs based on selected category
+  // Filter jobs based on selected category whenever allJobs or selectedCategory changes
   useEffect(() => {
     if (selectedCategory === "all") {
       setFilteredJobs(allJobs);
     } else {
-      setFilteredJobs(allJobs.filter(job => job.category.name === selectedCategory));
+      setFilteredJobs(allJobs.filter(job => job.category?.id === selectedCategory)); // Added optional chaining for job.category
     }
   }, [selectedCategory, allJobs]);
 
@@ -82,105 +94,103 @@ export default function RecommendedJobsPage() {
     setSelectedCategory(value);
   };
 
-  if (userLoading) {
-    return <div className="text-center py-8">Loading user data...</div>;
-  }
+  const renderContent = () => {
+    // Show skeleton loaders while user or job data is loading
+    if (userLoading || loading) {
+      return (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Card key={i}>
+              <CardHeader><Skeleton className="h-6 w-3/4" /></CardHeader>
+              <CardContent className="space-y-4">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-5/6" />
+                <Skeleton className="h-8 w-1/2" />
+              </CardContent>
+              <CardFooter><Skeleton className="h-10 w-full" /></CardFooter>
+            </Card>
+          ))}
+        </div>
+      );
+    }
+    
+    // Display any errors that occurred during the process
+    if (error) {
+      const isProfileIncomplete = error.includes("profile is incomplete");
+      return (
+        <Alert variant="destructive" className="bg-yellow-50 border-yellow-300 text-yellow-800">
+          <AlertCircle className="h-5 w-5 text-yellow-600" />
+          <AlertTitle className="font-bold">{isProfileIncomplete ? "Complete Your Profile" : "An Error Occurred"}</AlertTitle>
+          <AlertDescription>
+            {error}
+            {isProfileIncomplete && (
+                <Button asChild className="mt-4">
+                    <Link href="/profile">Go to Profile</Link>
+                </Button>
+            )}
+          </AlertDescription>
+        </Alert>
+      );
+    }
+
+    // Handle the case where the user is a freelancer but no jobs were recommended
+    if (filteredJobs.length === 0) {
+      return (
+        <Alert className="bg-green-50 border-green-300 text-green-800">
+            <UserCheck className="h-5 w-5 text-green-600" />
+            <AlertTitle className="font-bold">You're All Caught Up!</AlertTitle>
+            <AlertDescription>
+                Our AI couldn't find any new job matches for you at the moment or for the selected category. Your profile is ready to go!
+                <div className="mt-4">
+                    <Button asChild>
+                        <Link href="/jobs">Browse All Available Jobs</Link>
+                    </Button>
+                </div>
+            </AlertDescription>
+        </Alert>
+      );
+    }
+
+    // Display the list of recommended jobs
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredJobs.map((job: RecommendedJob) => (
+          <RecommendedJobCard key={job.id} job={job} />
+        ))}
+      </div>
+    );
+  };
 
   return (
-    <div className="flex flex-col gap-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight font-headline">
-          <Sparkles className="inline-block mr-2 text-primary" />
-          Recommended Jobs
+    <div className="container mx-auto py-8 px-4 md:px-6">
+      <div className="mb-8">
+        <h1 className="text-4xl font-extrabold tracking-tight font-headline flex items-center">
+          <Sparkles className="h-8 w-8 mr-3 text-primary animate-pulse" />
+          Your AI-Powered Job Recommendations
         </h1>
-        <p className="text-muted-foreground">
-          Jobs matched for you by our AI, updated daily.
+        <p className="text-lg text-muted-foreground mt-2">
+          Here are the top jobs our AI has matched specifically for you based on your skills and profile.
         </p>
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 mb-6">
         <label htmlFor="category-filter" className="text-sm font-medium">Filter by Category:</label>
         <Select value={selectedCategory} onValueChange={handleCategoryChange} disabled={loading}>
           <SelectTrigger id="category-filter" className="w-[180px]">
-            <SelectValue placeholder="Select a category" />
+            <SelectValue placeholder="All Categories" />
           </SelectTrigger>
           <SelectContent>
-            {categories.map(category => (
-              <SelectItem key={category} value={category}>
-                {category === "all" ? "All Categories" : category}
+            <SelectItem value="all">All Categories</SelectItem>
+            {categories.map((category: JobCategory) => (
+              <SelectItem key={category.id} value={category.id}>
+                {category.name}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
 
-      {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <Card key={i}>
-              <CardHeader>
-                <Skeleton className="h-6 w-3/4" />
-                <Skeleton className="h-4 w-1/2 mt-2" />
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-5/6" />
-              </CardContent>
-              <CardFooter>
-                <Skeleton className="h-10 w-full" />
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
-      ) : filteredJobs.length === 0 ? (
-        <Card className="text-center py-12">
-          <CardTitle className="text-xl font-headline mb-2">No Recommended Jobs</CardTitle>
-          <CardDescription>Our AI is constantly working to find the best matches for you. Please check back later!</CardDescription>
-          <Button asChild className="mt-4">
-            <Link href="/jobs">Browse All Jobs</Link>
-          </Button>
-        </Card>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredJobs.map((job) => (
-            <Card key={job.id}>
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                    <CardTitle className="text-lg">{job.title}</CardTitle>
-                    <Badge variant={job.job_type === 'Local' ? 'outline' : 'default'}>
-                        {job.job_type}
-                    </Badge>
-                </div>
-                <div className="flex items-center gap-4 text-sm text-muted-foreground mt-2">
-                    <div className="flex items-center gap-1">
-                        <Briefcase className="h-4 w-4" />
-                        <span>{job.category.name}</span>
-                    </div>
-                     <div className="flex items-center gap-1">
-                        <MapPin className="h-4 w-4" />
-                        <span>{job.location}</span>
-                    </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground text-sm mb-4">{job.description}</p>
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {job.tags.map(tag => <Badge key={tag} variant="secondary">{tag}</Badge>)}
-                </div>
-                <div className="flex flex-wrap gap-2">
-                    <span className="font-medium text-sm">Matched Skills:</span>
-                    {job.matched_skills.map(skill => <Badge key={skill} variant="success">{skill}</Badge>)}
-                </div>
-              </CardContent>
-              <CardFooter className="flex justify-end">
-                <Button asChild>
-                  <Link href={`/jobs/${job.id}`}>View Details</Link>
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
-      )}
+      {renderContent()}
     </div>
   );
 }

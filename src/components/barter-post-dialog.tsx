@@ -111,8 +111,8 @@ export function BarterPostDialog({ children, onPostCreated }: BarterPostDialogPr
         try {
             const formData = form.getValues();
             const payload = {
-                offers_description: formData.skillsToOffer,
-                wants_description: formData.skillsToReceive,
+                skillsOffered: formData.skillsToOffer, // Corrected key
+                skillsWanted: formData.skillsToReceive, // Corrected key
                 title: formData.title || 'No Title',
                 description: formData.description || 'No Description',
             };

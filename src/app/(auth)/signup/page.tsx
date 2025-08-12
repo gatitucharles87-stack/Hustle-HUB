@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { SignupForm } from "@/components/auth/signup-form";
 import {
@@ -9,8 +11,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Logo } from "@/components/logo";
+import { useSearchParams } from "next/navigation"; // Import useSearchParams
 
 export default function SignupPage() {
+  const searchParams = useSearchParams();
+  const referralCode = searchParams.get('ref'); // Get the referral code from the URL
+
   return (
     <div className="flex flex-col items-center justify-center space-y-4">
       <Logo />
@@ -22,7 +28,7 @@ export default function SignupPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <SignupForm />
+          <SignupForm referralCode={referralCode} />{/* Pass referralCode to SignupForm */}
         </CardContent>
         <CardFooter>
           <div className="text-sm text-muted-foreground">

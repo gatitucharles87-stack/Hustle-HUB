@@ -8,9 +8,9 @@ interface PortfolioItem {
   id: string;
   title: string;
   description?: string;
-  filePath: string;
+  filePath?: string;
   imageUrl?: string;
-  type: 'image' | 'document';
+  type: 'image' | 'document' | 'mixed'; // Added 'mixed' type
 }
 
 interface PortfolioPreviewModalProps {

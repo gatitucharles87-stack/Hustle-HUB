@@ -8,8 +8,8 @@ interface PortfolioItem {
   id: string;
   title: string;
   description?: string;
-  filePath: string;
-  type: 'image' | 'document';
+  filePath?: string; // Made optional
+  type: 'image' | 'document' | 'mixed'; // Added 'mixed' type
 }
 
 interface PortfolioItemCardProps {
@@ -21,7 +21,12 @@ export function PortfolioItemCard({ item }: PortfolioItemCardProps) {
 
     const handleViewClick = () => {
         // In a real app, this would open the actual file. For now, it's a placeholder.
-        window.open(item.filePath, '_blank');
+        if (item.filePath) {
+            window.open(item.filePath, '_blank');
+        } else {
+            // Handle case where filePath is undefined, perhaps show a toast or log
+            console.warn("No file path available for this portfolio item.");
+        }
     };
     
     return (
@@ -32,7 +37,7 @@ export function PortfolioItemCard({ item }: PortfolioItemCardProps) {
                  </div>
                 <h3 className="font-semibold text-lg truncate">{item.title}</h3>
                 <p className="text-sm text-muted-foreground flex-grow mb-4">{item.description}</p>
-                <Button variant="link" className="p-0 h-auto self-start" onClick={handleViewClick}>
+                <Button variant="link" className="p-0 h-auto self-start" onClick={handleViewClick} disabled={!item.filePath}> {/* Disable if no filePath */}
                     View Project
                     <ExternalLink className="ml-2 h-4 w-4" />
                 </Button>

@@ -13,57 +13,65 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useUser } from "@/hooks/use-user";
+import api from "@/lib/api";
 
 interface UserProfile {
     id: string;
     email: string;
-    full_name: string;
+    fullName: string; // From useUser hook
     role: string;
-    referral_code: string;
-    xp_points: number;
+    referral_code: string; // From backend UserSerializer
+    xp_points: number; // From backend UserSerializer
+    username: string; // From backend UserSerializer
 }
 
 interface ReferralEntry {
     id: string;
-    referred_user_email: string;
+    referred_user: { // If referred user has signed up
+        id: string;
+        email: string;
+        full_name: string;
+    } | null;
+    referred_user_email: string | null; // From ReferralSerializer
     created_at: string;
     is_successful: boolean;
-    status: string;
 }
 
-const placeholderReferralHistory: ReferralEntry[] = [
-    { id: "1", referred_user_email: "jane.doe@example.com", created_at: "2024-07-20", is_successful: true, status: "Completed" },
-    { id: "2", referred_user_email: "peter.jones@example.com", created_at: "2024-07-18", is_successful: true, status: "Completed" },
-    { id: "3", referred_user_email: "susan.smith@example.com", created_at: "2024-07-15", is_successful: false, status: "Pending" },
-];
-
-const placeholderUserProfile: UserProfile = {
-    id: "user-123",
-    email: "current.user@example.com",
-    full_name: "Current User",
-    role: "freelancer",
-    referral_code: "REF123XYZ",
-    xp_points: 500,
-};
-
 export default function ReferralsPage() {
-    const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+    const { user, loading: userLoading } = useUser();
     const [referralHistory, setReferralHistory] = useState<ReferralEntry[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loadingReferrals, setLoadingReferrals] = useState(true);
     const { toast } = useToast();
 
-    const referralLink = userProfile ? `https://hustlehub.app/signup?ref=${userProfile.referral_code}` : "";
+    const referralLink = user && user.username ? `${window.location.origin}/signup?ref=${user.username}` : "";
 
     useEffect(() => {
-        setLoading(true);
-        setTimeout(() => {
-            setUserProfile(placeholderUserProfile);
-            setReferralHistory(placeholderReferralHistory);
-            setLoading(false);
-        }, 1000);
-    }, []);
+        const fetchReferralData = async () => {
+            if (!user) return;
+            setLoadingReferrals(true);
+            try {
+                const response = await api.get<ReferralEntry[]>('/referrals/');
+                setReferralHistory(response.data);
+            } catch (error) {
+                console.error("Failed to fetch referral history:", error);
+                toast({
+                    title: "Error",
+                    description: "Failed to load referral history. Please try again.",
+                    variant: "destructive",
+                });
+            } finally {
+                setLoadingReferrals(false);
+            }
+        };
+
+        if (!userLoading && user) {
+            fetchReferralData();
+        }
+    }, [user, userLoading, toast]);
 
     const successfulReferralsCount = referralHistory.filter(ref => ref.is_successful).length;
+    // Loyalty points are awarded at signup, assuming 100 points per successful referral
     const loyaltyPointsEarned = successfulReferralsCount * 100; 
 
     const handleCopyLink = () => {
@@ -76,7 +84,7 @@ export default function ReferralsPage() {
         }
     };
 
-    if (loading) {
+    if (userLoading || loadingReferrals) {
         return (
             <div className="flex flex-col gap-8">
                 <Card>
@@ -149,11 +157,11 @@ export default function ReferralsPage() {
                                     {referralHistory.length > 0 ? (
                                         referralHistory.map((ref) => (
                                             <TableRow key={ref.id}>
-                                                <TableCell className="font-medium">{ref.referred_user_email}</TableCell>
+                                                <TableCell className="font-medium">{ref.referred_user?.email || ref.referred_user_email || 'N/A'}</TableCell>
                                                 <TableCell>{new Date(ref.created_at).toLocaleDateString()}</TableCell>
                                                 <TableCell>
                                                     <Badge variant={ref.is_successful ? "default" : "secondary"}>
-                                                        {ref.status}
+                                                        {ref.is_successful ? "Completed" : "Pending"}
                                                     </Badge>
                                                 </TableCell>
                                                 <TableCell className="text-right font-medium">{ref.is_successful ? `+100` : '-'}</TableCell>

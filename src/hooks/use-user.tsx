@@ -1,19 +1,25 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import api from '@/lib/api';
 import { useRouter } from 'next/navigation';
 
 interface User {
-  id: number;
+  id: string; // Changed to string to match UUID
   email: string;
-  fullName: string;
+  fullName: string; 
   role: string;
   date_joined: string;
   last_login: string;
-  profilePictureUrl?: string; // Added optional profile picture URL
-  username?: string; // Added optional username
+  profilePictureUrl?: string; 
+  username?: string; 
+  referral_code?: string; 
+  xp_points?: number; 
+  level?: number; 
+  bio?: string; // Added bio
+  skills?: string[]; // Added skills
+  service_areas?: string[] | string; // Added service_areas
 }
 
 export function useUser() {
@@ -21,27 +27,48 @@ export function useUser() {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const response = await api.get<User>('/auth/me'); // Changed to /auth/me as per API_ENDPOINTS.md
-        setUser(response.data);
-      } catch (error) {
-        console.error('Failed to fetch user', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUser();
+  const fetchUser = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await api.get<any>('/auth/me'); 
+      setUser({
+          ...response.data,
+          fullName: response.data.full_name, 
+          profilePictureUrl: response.data.avatar, 
+      });
+    } catch (error) {
+      console.error('Failed to fetch user', error);
+      // Optionally redirect to login if auth token is invalid
+      // if (error.response && error.response.status === 401) {
+      //   logout();
+      // }
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchUser();
+  }, [fetchUser]);
 
   const logout = () => {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
     sessionStorage.removeItem('userRole');
+    setUser(null); // Clear user state on logout
     router.push('/login');
   };
 
-  return { user, loading, logout };
+  // Function to manually update user data in state (e.g., after a successful API call)
+  const mutateUser = (newData: Partial<User>, revalidate: boolean = true) => {
+    setUser(prevUser => {
+      if (!prevUser) return null;
+      return { ...prevUser, ...newData };
+    });
+    if (revalidate) {
+      fetchUser(); // Re-fetch from API to ensure consistency
+    }
+  };
+
+  return { user, loading, logout, mutateUser };
 }
