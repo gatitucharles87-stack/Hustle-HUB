@@ -28,7 +28,7 @@ from django.core.mail import send_mail
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
-from datetime import date
+from datetime import date, timedelta
 from django.db.models import Avg
 from rest_framework import filters
 
@@ -589,7 +589,6 @@ class DashboardStatsView(generics.RetrieveAPIView):
         leaderboard_rank = higher_xp_users_count + 1
 
         # 7. Commission Details
-        # Assuming commission_is_suspended is a field on User or determined by an active excuse
         commission_due = CommissionLog.objects.filter(
             job__freelancer=user, 
             status='due',
@@ -597,36 +596,30 @@ class DashboardStatsView(generics.RetrieveAPIView):
         ).aggregate(Sum('commission_amount'))['commission_amount__sum'] or 0
 
         commission_days_left = None
-        commission_is_suspended = False # Placeholder logic
-        can_submit_excuse = False # Placeholder logic
+        commission_is_suspended = False
+        can_submit_excuse = False
 
-        # Determine if commission is suspended or can submit excuse
-        # This logic needs to be more robust based on your business rules
-        # For now, a simple check if there's an overdue commission
         if commission_due > 0:
-            # Check for existing pending excuse for the user (not necessarily per commission)
-            has_pending_excuse = CommissionExcuse.objects.filter(user=user, status='pending').exists()
-            can_submit_excuse = not has_pending_excuse
+            # Check for existing pending or approved excuse for any overdue commission
+            has_active_excuse = CommissionExcuse.objects.filter(
+                Q(user=user) & 
+                (Q(status='pending') | Q(status='approved'))
+            ).exists()
             
-            # Example: Suspend if commission is overdue by more than X days and no approved excuse
-            # This would typically be more complex, involving a background task or specific rules
-            # For now, let's say if commission_due > 0 and no excuse, it's 'suspended' for demo
-            commission_is_suspended = (commission_due > 0 and not has_pending_excuse)
+            can_submit_excuse = not has_active_excuse
+            commission_is_suspended = (commission_due > 0 and not has_active_excuse)
 
-            # Calculate days left for the soonest overdue commission, if any
-            soonest_overdue = CommissionLog.objects.filter(
+            soonest_overdue_commission = CommissionLog.objects.filter(
                 job__freelancer=user, 
                 status='due',
                 due_date__lte=date.today()
             ).order_by('due_date').first()
 
-            if soonest_overdue and soonest_overdue.due_date:
-                days_diff = (soonest_overdue.due_date - date.today()).days
-                commission_days_left = max(0, days_diff) # Days remaining until due date, or 0 if overdue
-                # If it's already overdue, maybe show how many days *past* due
-                if days_diff < 0: # If negative, it means days overdue
-                    commission_days_left = days_diff # Store as negative to indicate overdue
-
+            if soonest_overdue_commission and soonest_overdue_commission.due_date:
+                days_diff = (soonest_overdue_commission.due_date - date.today()).days
+                commission_days_left = days_diff # Will be negative if overdue
+            else:
+                commission_days_left = 0 # No specific overdue commission found, but commission_due > 0 implies a general overdue status
 
         # 8. Has Portfolio
         has_portfolio = PortfolioItem.objects.filter(user=user).exists()
