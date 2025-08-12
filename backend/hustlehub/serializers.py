@@ -122,7 +122,12 @@ class CommissionLogSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CommissionLog
-        fields = '__all__' + ['job_title']
+        fields = (
+            'id', 'job', 'total_amount', 'commission_percentage', 
+            'commission_amount', 'freelancer_earning', 'status', 
+            'due_date', 'completion_date', 'created_at', 'has_excuse',
+            'job_title'
+        )
 
     def get_job_title(self, obj):
         return obj.job.title if obj.job else None
