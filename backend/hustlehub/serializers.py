@@ -52,10 +52,32 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         return user
 
 
+class RelatedObjectSerializer(serializers.RelatedField):
+    def to_representation(self, value):
+        if isinstance(value, Job):
+            return {'type': 'Job', 'id': value.pk, 'title': value.title}
+        if isinstance(value, SkillBarterPost):
+            return {'type': 'SkillBarterPost', 'id': value.pk, 'title': value.title}
+        if isinstance(value, Review):
+            return {'type': 'Review', 'id': value.pk, 'job_title': value.job.title}
+        if isinstance(value, Badge):
+            return {'type': 'Badge', 'id': value.pk, 'name': value.name}
+        
+        # Fallback
+        if hasattr(value, 'pk'):
+             return {'type': value.__class__.__name__, 'id': value.pk}
+        
+        return None
+
 class NotificationSerializer(serializers.ModelSerializer):
+    related_object = RelatedObjectSerializer(read_only=True)
+    
     class Meta:
         model = Notification
-        fields = '__all__'
+        fields = [
+            'id', 'user', 'title', 'message', 'is_read', 
+            'type', 'created_at', 'related_object'
+        ]
         read_only_fields = ['user']
 
 class MarkNotificationsAsReadSerializer(serializers.Serializer):

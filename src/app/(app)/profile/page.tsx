@@ -71,7 +71,7 @@ export default function ProfilePage() {
         bio,
         skills
       };
-      const { data } = await api.patch('/auth/me', payload);
+      const { data } = await api.patch('/auth/me/', payload);
       mutateUser(data, false);
       setIsEditing(false);
 
@@ -159,7 +159,7 @@ export default function ProfilePage() {
           <Card className="shadow-md">
             <CardContent className="flex flex-col items-center text-center p-8">
               <Avatar className="h-32 w-32 mb-4 border-4 border-primary/20 shadow-lg">
-                <AvatarImage src={user.profilePictureUrl} alt={user.fullName} />
+                <AvatarImage src={user.avatar} alt={user.fullName} />
                 <AvatarFallback className="text-4xl bg-gradient-to-br from-primary to-primary/70 text-primary-foreground">
                   {user.fullName.split(' ').map(n => n[0]).join('')}
                 </AvatarFallback>

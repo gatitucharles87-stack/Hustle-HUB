@@ -60,6 +60,7 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
+    'EXCEPTION_HANDLER': 'hustlehub.exceptions.custom_exception_handler',
 }
 
 MIDDLEWARE = [
@@ -154,3 +155,29 @@ CORS_ALLOWED_ORIGINS = [
 
 # Set the frontend URL for password reset links, defaulting to your port 9002
 FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:9002')
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
+            'propagate': False,
+        },
+        'hustlehub': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        }
+    },
+}
