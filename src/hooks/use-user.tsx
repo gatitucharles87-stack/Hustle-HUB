@@ -12,7 +12,7 @@ interface User {
   role: string;
   date_joined: string;
   last_login: string;
-  profilePictureUrl?: string; 
+  avatar?: string; // Changed from profilePictureUrl to avatar
   username?: string; 
   referral_code?: string; 
   xp_points?: number; 
@@ -34,7 +34,7 @@ export function useUser() {
       setUser({
           ...response.data,
           fullName: response.data.full_name, 
-          profilePictureUrl: response.data.avatar, 
+          avatar: response.data.avatar, // Ensure this maps correctly
       });
     } catch (error) {
       console.error('Failed to fetch user', error);
