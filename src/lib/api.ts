@@ -53,4 +53,12 @@ export const getCommissionHistory = async () => {
   return api.get("/commissions/history/");
 };
 
+export const getRecommendedJobs = async () => {
+  return api.get("/jobs/recommended/");
+};
+
+export const getJobCategories = async () => {
+  return api.get("/job-categories/");
+};
+
 export default api;
