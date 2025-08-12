@@ -463,21 +463,29 @@ class CountyViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = County.objects.all()
     serializer_class = CountySerializer
     permission_classes = [AllowAny]
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['name']
 
 class SubCountyViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = SubCounty.objects.all()
     serializer_class = SubCountySerializer
     permission_classes = [AllowAny]
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['name']
 
 class WardViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ward.objects.all()
     serializer_class = WardSerializer
     permission_classes = [AllowAny]
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['name']
     
 class NeighborhoodTagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = NeighborhoodTag.objects.all()
     serializer_class = NeighborhoodTagSerializer
     permission_classes = [AllowAny]
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['name']
 
 class PasswordResetRequestView(generics.GenericAPIView):
     serializer_class = PasswordResetRequestSerializer

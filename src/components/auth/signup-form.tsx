@@ -47,8 +47,7 @@ export function SignupForm({ referralCode: initialReferralCode }: SignupFormProp
     const [role, setRole] = useState("freelancer");
     const [isRemote, setIsRemote] = useState(false);
     const [currentServiceAreaInput, setCurrentServiceAreaInput] = useState("");
-    const [selectedServiceAreas, setSelectedServiceAreas] = useState<string[]>([]);
-    const [availableLocations, setAvailableLocations] = useState<string[]>([]);
+    const [serviceAreasString, setServiceAreasString] = useState<string>(""); // Changed to string
     const [filteredLocations, setFilteredLocations] = useState<string[]>([]);
     const [referralCode, setReferralCode] = useState(initialReferralCode || "");
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -77,7 +76,6 @@ export function SignupForm({ referralCode: initialReferralCode }: SignupFormProp
 
         setLoadingLocations(true);
         try {
-            // FIX: Removed leading slashes from endpoint paths
             const endpoints = ['counties', 'sub-counties', 'wards', 'neighborhood-tags'];
             const requests = endpoints.map(endpoint => api.get(`${endpoint}/?search=${searchQuery}`));
             const responses = await Promise.all(requests);
@@ -104,8 +102,10 @@ export function SignupForm({ referralCode: initialReferralCode }: SignupFormProp
 
 
     const addServiceArea = (area: string) => {
-        if (!selectedServiceAreas.includes(area)) {
-            setSelectedServiceAreas([...selectedServiceAreas, area]);
+        const currentAreas = serviceAreasString.split(',').map(s => s.trim()).filter(Boolean);
+        if (!currentAreas.includes(area)) {
+            const newAreas = [...currentAreas, area];
+            setServiceAreasString(newAreas.join(', '));
             setCurrentServiceAreaInput(""); // Clear input after adding
             setFilteredLocations([]); // Clear suggestions
             setServiceAreaError(null);
@@ -113,20 +113,28 @@ export function SignupForm({ referralCode: initialReferralCode }: SignupFormProp
     };
 
     const removeServiceArea = (areaToRemove: string) => {
-        setSelectedServiceAreas(selectedServiceAreas.filter(area => area !== areaToRemove));
+        const currentAreas = serviceAreasString.split(',').map(s => s.trim()).filter(Boolean);
+        const newAreas = currentAreas.filter(area => area !== areaToRemove);
+        setServiceAreasString(newAreas.join(', '));
     };
 
     const handleServiceAreaInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === 'Enter' && filteredLocations.length > 0) {
+        if (e.key === 'Enter') {
             e.preventDefault(); // Prevent form submission
-            addServiceArea(filteredLocations[0]);
-        } else if (e.key === 'Enter' && currentServiceAreaInput && !filteredLocations.length) {
-             e.preventDefault();
-            setServiceAreaError("Please select a valid location from the suggestions.");
-        } else if (e.key === 'Backspace' && currentServiceAreaInput === '' && selectedServiceAreas.length > 0) {
+            if (filteredLocations.length > 0) {
+                addServiceArea(filteredLocations[0]);
+            } else if (currentServiceAreaInput) {
+                setServiceAreaError("Please select a valid location from the suggestions or type a comma-separated list.");
+                // Optionally allow adding free text if no suggestions, but prompt user
+                // addServiceArea(currentServiceAreaInput); 
+            }
+        } else if (e.key === 'Backspace' && currentServiceAreaInput === '' && serviceAreasString) {
             // Remove last badge on backspace if input is empty
             e.preventDefault();
-            removeServiceArea(selectedServiceAreas[selectedServiceAreas.length - 1]);
+            const currentAreas = serviceAreasString.split(',').map(s => s.trim()).filter(Boolean);
+            if (currentAreas.length > 0) {
+                removeServiceArea(currentAreas[currentAreas.length - 1]);
+            }
         }
     };
 
@@ -143,7 +151,7 @@ export function SignupForm({ referralCode: initialReferralCode }: SignupFormProp
             password,
             role,
             is_remote_available: role === 'freelancer' ? isRemote : undefined,
-            service_areas: role === 'freelancer' ? selectedServiceAreas : undefined, // Send selected array
+            service_areas: role === 'freelancer' ? serviceAreasString : undefined, // Send as string
             referral_code: referralCode || undefined,
         };
 
@@ -200,6 +208,9 @@ export function SignupForm({ referralCode: initialReferralCode }: SignupFormProp
         setUsernameSuggestions([]);
     };
 
+    // Derived state for displaying badges
+    const displayServiceAreas = serviceAreasString.split(',').map(s => s.trim()).filter(Boolean);
+
     return (
         <div className="grid gap-4">
             <div className="grid gap-2">
@@ -226,7 +237,7 @@ export function SignupForm({ referralCode: initialReferralCode }: SignupFormProp
                                         >
                                             {s}
                                         </Badge>
-                                    ))}
+                                    ))}\
                                 </div>
                             )}
                         </div>
@@ -314,9 +325,9 @@ export function SignupForm({ referralCode: initialReferralCode }: SignupFormProp
                                 ))}
                             </div>
                         )}
-                        {selectedServiceAreas.length > 0 && (
+                        {displayServiceAreas.length > 0 && (
                             <div className="flex flex-wrap gap-2 mt-2">
-                                {selectedServiceAreas.map((area) => (
+                                {displayServiceAreas.map((area) => (
                                     <Badge key={area} variant="default" className="flex items-center gap-1 pr-1">
                                         {area}
                                         <XCircle 

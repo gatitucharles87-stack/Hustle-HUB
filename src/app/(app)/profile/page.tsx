@@ -9,12 +9,31 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import api from "@/lib/api";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Edit, User, Mail, Briefcase, Info, XCircle, Loader2 } from "lucide-react";
+import { Edit, User, Mail, Briefcase, Info, XCircle, Loader2, AlertCircle } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
+// Debounce hook
+function useDebounce<T>(value: T, delay: number): T {
+    const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedValue(value);
+        }, delay);
+
+        return () => {
+            clearTimeout(handler);
+        };
+    }, [value, delay]);
+
+    return debouncedValue;
+}
+
 
 export default function ProfilePage() {
   const { user, loading, mutateUser } = useUser();
@@ -27,17 +46,34 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
-  const [serviceAreas, setServiceAreas] = useState("");
+  const [serviceAreas, setServiceAreas] = useState<string[]>([]); // Changed to array
   const [bio, setBio] = useState("");
   const [skills, setSkills] = useState<string[]>([]);
   const [skillInput, setSkillInput] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
+  // New states for service area search
+  const [currentServiceAreaInput, setCurrentServiceAreaInput] = useState("");
+  const [filteredLocations, setFilteredLocations] = useState<string[]>([]);
+  const [loadingLocations, setLoadingLocations] = useState(false);
+  const [serviceAreaError, setServiceAreaError] = useState<string | null>(null);
+  
+  const debouncedServiceAreaSearchTerm = useDebounce(currentServiceAreaInput, 500);
+  const serviceAreaInputRef = useRef<HTMLInputElement>(null);
+
+
   useEffect(() => {
     if (user) {
       setUsername(user.username || "");
       setEmail(user.email || "");
-      setServiceAreas(Array.isArray(user.service_areas) ? user.service_areas.join(', ') : (user.service_areas || ""));
+      // Initialize serviceAreas as an array of strings, splitting by comma
+      setServiceAreas(
+          Array.isArray(user.service_areas)
+              ? user.service_areas
+              : (typeof user.service_areas === 'string' && user.service_areas)
+                  ? user.service_areas.split(',').map((s: string) => s.trim()).filter(Boolean)
+                  : []
+      );
       setBio(user.bio || "");
       setSkills(user.skills || []);
     }
@@ -45,6 +81,39 @@ export default function ProfilePage() {
         setIsEditing(true);
     }
   }, [user, isNewUser]);
+
+    const fetchAllLocations = useCallback(async (searchQuery: string) => {
+        if (!searchQuery) {
+            setFilteredLocations([]);
+            return;
+        }
+
+        setLoadingLocations(true);
+        try {
+            const endpoints = ['counties', 'sub-counties', 'wards', 'neighborhood-tags'];
+            const requests = endpoints.map(endpoint => api.get(`${endpoint}/?search=${searchQuery}`));
+            const responses = await Promise.all(requests);
+            
+            const allFetchedLocations = responses.flatMap(response => response.data.map((item: any) => item.name));
+            const uniqueLocations = [...new Set(allFetchedLocations)];
+            setFilteredLocations(uniqueLocations);
+
+        } catch (error) {
+            console.error("Failed to fetch locations:", error);
+            toast({
+                title: "Error",
+                description: "Failed to search locations.",
+                variant: "destructive",
+            });
+        } finally {
+            setLoadingLocations(false);
+        }
+    }, [toast]);
+
+    useEffect(() => {
+        fetchAllLocations(debouncedServiceAreaSearchTerm);
+    }, [debouncedServiceAreaSearchTerm, fetchAllLocations]);
+
 
   const handleAddSkill = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
@@ -61,13 +130,45 @@ export default function ProfilePage() {
     setSkills(skills.filter((skill) => skill !== skillToRemove));
   };
 
+  const addServiceArea = (area: string) => {
+      const trimmedArea = area.trim();
+      if (trimmedArea && !serviceAreas.includes(trimmedArea)) {
+          setServiceAreas([...serviceAreas, trimmedArea]);
+          setCurrentServiceAreaInput(""); // Clear input after adding
+          setFilteredLocations([]); // Clear suggestions
+          setServiceAreaError(null);
+      }
+  };
+
+  const removeServiceArea = (areaToRemove: string) => {
+      setServiceAreas(serviceAreas.filter(area => area !== areaToRemove));
+  };
+
+  const handleServiceAreaInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Enter') {
+          e.preventDefault(); // Prevent form submission
+          if (filteredLocations.length > 0) {
+              addServiceArea(filteredLocations[0]);
+          } else if (currentServiceAreaInput) {
+              setServiceAreaError("Please select a valid location from the suggestions or type a comma-separated list.");
+              // Optionally allow adding free text if no suggestions, but prompt user
+              // addServiceArea(currentServiceAreaInput); 
+          }
+      } else if (e.key === 'Backspace' && currentServiceAreaInput === '' && serviceAreas.length > 0) {
+          // Remove last badge on backspace if input is empty
+          e.preventDefault();
+          removeServiceArea(serviceAreas[serviceAreas.length - 1]);
+      }
+  };
+
+
   const handleSaveProfile = async () => {
     setIsSaving(true);
     try {
       const payload = {
         username,
         email,
-        service_areas: serviceAreas.split(',').map(s => s.trim()).filter(Boolean),
+        service_areas: serviceAreas.join(', '), // Join back to comma-separated string for backend
         bio,
         skills
       };
@@ -104,9 +205,18 @@ export default function ProfilePage() {
     if (user) {
         setUsername(user.username || "");
         setEmail(user.email || "");
-        setServiceAreas(Array.isArray(user.service_areas) ? user.service_areas.join(', ') : (user.service_areas || ""));
+        setServiceAreas(
+            Array.isArray(user.service_areas)
+                ? user.service_areas
+                : (typeof user.service_areas === 'string' && user.service_areas)
+                    ? user.service_areas.split(',').map((s: string) => s.trim()).filter(Boolean)
+                    : []
+        );
         setBio(user.bio || "");
         setSkills(user.skills || []);
+        setCurrentServiceAreaInput(""); // Clear search input
+        setFilteredLocations([]); // Clear filtered locations
+        setServiceAreaError(null); // Clear error
     }
     setIsEditing(false);
   };
@@ -271,16 +381,69 @@ export default function ProfilePage() {
             </CardHeader>
             <CardContent>
                 {isEditing ? (
-                    <>
-                    <Input id="serviceAreas" value={serviceAreas} onChange={(e) => setServiceAreas(e.target.value)} placeholder="e.g., Nairobi CBD, Rongai, Kasarani"/>
-                    <p className="text-xs text-muted-foreground mt-1">Separate areas with a comma.</p>
-                    </>
+                    <div className="space-y-2">
+                        <Label htmlFor="areas" className="flex items-center gap-2">
+                            Which local areas do you work in?
+                             <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Info className="h-4 w-4 text-muted-foreground" />
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Start typing to see suggestions. Press Enter to add, Backspace to remove last.</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                        </Label>
+                        <Input 
+                            id="serviceAreas" 
+                            placeholder="e.g., Nairobi CBD, Westlands" 
+                            value={currentServiceAreaInput} 
+                            onChange={(e) => setCurrentServiceAreaInput(e.target.value)}
+                            onKeyDown={handleServiceAreaInputKeyDown}
+                            ref={serviceAreaInputRef}
+                            disabled={loadingLocations}
+                        />
+                         {loadingLocations && <p className="text-sm text-muted-foreground">Searching...</p>}
+                        {serviceAreaError && (
+                            <p className="text-red-500 text-sm flex items-center gap-2 mt-1">
+                                <AlertCircle className="h-4 w-4" /> {serviceAreaError}
+                            </p>
+                        )}
+                        {filteredLocations.length > 0 && !loadingLocations && (
+                            <div className="border rounded-md max-h-40 overflow-y-auto mt-1">
+                                {filteredLocations.map((location) => (
+                                    <div 
+                                        key={location} 
+                                        className="p-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
+                                        onClick={() => addServiceArea(location)}
+                                    >
+                                        {location}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                        {serviceAreas.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mt-2">
+                                {serviceAreas.map((area) => (
+                                    <Badge key={area} variant="default" className="flex items-center gap-1 pr-1">
+                                        {area}
+                                        <XCircle 
+                                            className="h-4 w-4 cursor-pointer text-muted-foreground hover:text-red-500"
+                                            onClick={() => removeServiceArea(area)}
+                                        />
+                                    </Badge>
+                                ))}
+                            </div>
+                        )}
+                    </div>
                 ) : (
                     <div className="p-3 border rounded-md bg-gray-50 dark:bg-gray-700 min-h-[40px] flex gap-2 flex-wrap items-center">
                         {user.service_areas && user.service_areas.length > 0 ? (
-                            Array.isArray(user.service_areas) ? user.service_areas.map((area) => (
-                            <Badge key={area}>{area}</Badge>
-                            )) : <Badge>{user.service_areas}</Badge>
+                            // Ensure service_areas is treated as a string, then split and map
+                            (Array.isArray(user.service_areas) ? user.service_areas : user.service_areas.split(',')).map((area: string) => (
+                                <Badge key={area.trim()}>{area.trim()}</Badge>
+                            ))
                         ) : (
                             <span className="text-gray-800 dark:text-gray-200">No service areas added yet. Click 'Edit Profile' to add some!</span>
                         )}
