@@ -19,6 +19,7 @@ from .models import (
     NotificationSettings, Review, AboutUs, County, SubCounty, Ward, NeighborhoodTag, LEVEL_THRESHOLDS
 )
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.exceptions import AuthenticationFailed # Import AuthenticationFailed
 from django.db.models import Q, Sum
 from django.shortcuts import get_object_or_404
 from .permissions import IsOwnerOrReadOnly, IsAdminUserOrReadOnly, IsEmployerOrAdmin, IsFreelancerOrAdmin
@@ -69,6 +70,9 @@ class AuthViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['get', 'patch'], permission_classes=[IsAuthenticated])
     def me(self, request):
+        if not request.user.is_authenticated:
+            raise AuthenticationFailed("User not authenticated.")
+
         if request.method == 'GET':
             serializer = UserSerializer(request.user)
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -174,7 +178,7 @@ class NotificationViewSet(viewsets.ModelViewSet):
             notification_ids = serializer.validated_data['ids']
             # Ensure user can only mark their own notifications as read
             notifications_to_update = self.get_queryset().filter(id__in=notification_ids)
-            count = notifications_to_update.update(is_read=True)
+            count = notifications_to_update.update(is_read=True);
             return Response({'message': f'{count} notifications marked as read.'}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     

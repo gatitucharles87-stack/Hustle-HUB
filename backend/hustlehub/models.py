@@ -347,7 +347,7 @@ class Review(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     job = models.ForeignKey(Job, on_delete=models.CASCADE, related_name='reviews', help_text="The completed job this review is for.")
     reviewer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='reviews_given')
-    reviewee = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='reviews_received', help_text="The user being reviewed (freelancer or employer).", null=True)
+    reviewee = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='received_reviews', help_text="The user being reviewed (freelancer or employer).", null=True)
     rating = models.IntegerField(choices=[(i, str(i)) for i in range(1, 6)], help_text="Rating out of 5 stars.")
     comment = models.TextField(blank=True, null=True)
     proof_image = models.ImageField(upload_to='reviews/', blank=True, null=True)
