@@ -13,10 +13,13 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 from pathlib import Path
 import os
 import dj_database_url
-from decouple import config
+from decouple import Config, RepositoryEnv # Corrected import
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Instantiate config
+config = Config(RepositoryEnv(os.path.join(BASE_DIR, '.env')))
 
 
 # Quick-start development settings - unsuitable for production
