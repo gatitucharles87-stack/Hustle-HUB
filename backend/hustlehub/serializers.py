@@ -23,6 +23,12 @@ class UserSerializer(serializers.ModelSerializer):
     def get_average_rating(self, obj):
         return obj.received_reviews.aggregate(Avg('rating'))['rating__avg']
 
+class UserUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['email', 'username', 'bio', 'skills', 'service_areas', 'is_remote_available', 'avatar']
+
+
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
     referral_code = serializers.CharField(write_only=True, required=False, allow_null=True)
@@ -183,7 +189,7 @@ class ReferralSerializer(serializers.ModelSerializer):
     class Meta:
         model = Referral
         fields = ['id', 'referrer', 'referred_user', 'is_successful', 'created_at']
-        read_only_fields = ['id', 'referrer', 'referred_user', 'is_successful', 'created_at']
+        read_only_fields = ['id', 'referrer', 'referred_user', 'is_successful', 'created_.at']
 
 class LoyaltyPointLogSerializer(serializers.ModelSerializer):
     class Meta:

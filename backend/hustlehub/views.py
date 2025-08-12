@@ -10,7 +10,7 @@ from .serializers import (
     CommissionExcuseSerializer, BadgeSerializer, UserBadgeSerializer, XPLogSerializer, ReferralSerializer,
     LoyaltyPointLogSerializer, NotificationSettingsSerializer, ReviewSerializer, AboutUsSerializer,
     CountySerializer, SubCountySerializer, WardSerializer, NeighborhoodTagSerializer, PasswordResetRequestSerializer,
-    PasswordResetConfirmSerializer, DashboardStatsSerializer, DashboardStatsBadgeSerializer
+    PasswordResetConfirmSerializer, DashboardStatsSerializer, DashboardStatsBadgeSerializer, UserUpdateSerializer
 )
 from .models import (
     User, Notification, JobCategory, Job, JobApplication, SkillBarterPost,
@@ -78,10 +78,10 @@ class AuthViewSet(viewsets.ViewSet):
             return Response(serializer.data, status=status.HTTP_200_OK)
         elif request.method == 'PATCH':
             # Allow updating specific fields like bio and skills
-            serializer = UserSerializer(request.user, data=request.data, partial=True)
+            serializer = UserUpdateSerializer(request.user, data=request.data, partial=True)
             if serializer.is_valid():
                 serializer.save()
-                return Response(serializer.data, status=status.HTTP_200_OK)
+                return Response(UserSerializer(request.user).data, status=status.HTTP_200_OK) # Return full user data after update
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
