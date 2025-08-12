@@ -57,9 +57,9 @@ export default function RecommendedJobsPage() {
             getRecommendedJobs(), // Use the imported function
             getJobCategories() // Use the imported function
           ]);
-          setAllJobs(jobsResponse);
-          setFilteredJobs(jobsResponse); // Initially display all jobs
-          setCategories(categoriesResponse);
+          setAllJobs(jobsResponse.data); // Extract data from AxiosResponse
+          setFilteredJobs(jobsResponse.data); // Initially display all jobs
+          setCategories(categoriesResponse.data); // Extract data from AxiosResponse
         } catch (err: any) {
           console.error("Failed to fetch data for recommended jobs:", err);
           setError("We couldn't load your recommendations right now. Please try again later.");

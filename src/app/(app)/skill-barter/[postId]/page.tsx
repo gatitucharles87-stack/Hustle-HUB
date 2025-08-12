@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -35,29 +35,34 @@ export default function SkillBarterPostDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
 
-  useEffect(() => {
-    const fetchPostDetails = async () => {
-      setLoading(true);
-      try {
-        const response = await api.get(`/skill-barter-posts/${postId}/`);
-        setPost(response.data);
-      } catch (error) {
-        console.error("Failed to fetch skill barter post details", error);
-        toast({
-          title: "Error",
-          description: "Failed to load skill barter post details. Please try again later.",
-          variant: "destructive",
-        });
-        setPost(null);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchPostDetails = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await api.get(`/skill-barter-posts/${postId}/`);
+      setPost(response.data);
+    } catch (error) {
+      console.error("Failed to fetch skill barter post details", error);
+      toast({
+        title: "Error",
+        description: "Failed to load skill barter post details. Please try again later.",
+        variant: "destructive",
+      });
+      setPost(null);
+    } finally {
+      setLoading(false);
+    }
+  }, [postId, toast]); // Dependencies for useCallback
 
+  useEffect(() => {
     if (postId) {
       fetchPostDetails();
     }
-  }, [postId, toast]);
+  }, [postId, fetchPostDetails]); // Add fetchPostDetails as a dependency
+
+  const handleOfferSubmitted = () => {
+    // Re-fetch post details or update UI after an offer is submitted
+    fetchPostDetails(); 
+  };
 
   if (loading) {
     return (
@@ -148,6 +153,7 @@ export default function SkillBarterPostDetailsPage() {
           postId={post.id}
           isOpen={isOfferModalOpen}
           onClose={() => setIsOfferModalOpen(false)}
+          onOfferSubmitted={handleOfferSubmitted} // Added the missing prop
         />
       )}
     </div>

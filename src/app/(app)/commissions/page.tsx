@@ -44,16 +44,12 @@ export default function CommissionsPage() {
         setLoading(true);
         setError(null);
         try {
-          const data = await getCommissionHistory();
-          setCommissionHistory(data);
+          const response = await getCommissionHistory();
+          setCommissionHistory(response.data); // Extract data from AxiosResponse
         } catch (err: any) {
           console.error("Failed to fetch commission history:", err);
           setError("Failed to load commission history. Please try again later.");
-          toast({
-            title: "Error",
-            description: "Failed to fetch commission history.",
-            variant: "destructive"
-          });
+          // Do not toast here if it's causing infinite loop. The error state will be rendered.
         } finally {
           setLoading(false);
         }
@@ -63,7 +59,7 @@ export default function CommissionsPage() {
       setLoading(false);
       setError("You must be logged in to view your commissions.");
     }
-  }, [user, userLoading, toast]);
+  }, [user, userLoading]); // Removed toast from dependencies
 
   const totalEarnings = commissionHistory.reduce((acc, item) => acc + item.earnings, 0);
   const totalCommissions = commissionHistory.reduce((acc, item) => acc + item.commission_amount, 0);

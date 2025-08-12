@@ -64,6 +64,10 @@ export default function SkillBarterPage() {
     setIsOfferModalOpen(true);
   };
 
+  const handleOfferSubmitted = () => {
+    fetchBarterPosts(); // Re-fetch posts to update the list after an offer is submitted
+  };
+
   return (
     <div className="flex flex-col gap-8">
       <Card>
@@ -137,6 +141,7 @@ export default function SkillBarterPage() {
           postId={selectedPostId}
           isOpen={isOfferModalOpen}
           onClose={() => setIsOfferModalOpen(false)}
+          onOfferSubmitted={handleOfferSubmitted} // Added the missing prop
         />
       )}
     </div>

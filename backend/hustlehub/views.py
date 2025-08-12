@@ -239,6 +239,15 @@ class JobViewSet(viewsets.ModelViewSet):
         if self.action in ['list', 'retrieve']:
             return [AllowAny()]
         return [IsAuthenticated(), IsOwnerOrReadOnly()]
+    
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
+    def my_listings(self, request):
+        if request.user.role != 'employer':
+            return Response({"detail": "Only employers can view their job listings."}, status=status.HTTP_403_FORBIDDEN)
+        
+        listings = self.get_queryset().filter(employer=request.user)
+        serializer = self.get_serializer(listings, many=True)
+        return Response({"jobs": serializer.data}, status=status.HTTP_200_OK)
 
 
 class RecommendedJobsView(generics.ListAPIView):
@@ -280,6 +289,15 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         # Ensure the applicant is the current user
         serializer.save(freelancer=self.request.user)
+
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
+    def my_applications(self, request):
+        if request.user.role != 'freelancer':
+            return Response({"detail": "Only freelancers can view their job applications."}, status=status.HTTP_403_FORBIDDEN)
+        
+        applications = self.get_queryset().filter(freelancer=request.user)
+        serializer = self.get_serializer(applications, many=True)
+        return Response({"applications": serializer.data}, status=status.HTTP_200_OK)
 
 
 class SkillBarterPostViewSet(viewsets.ModelViewSet):
@@ -362,6 +380,23 @@ class CommissionLogViewSet(viewsets.ReadOnlyModelViewSet):
             elif user.role == 'admin':
                 return self.queryset.all()
         return self.queryset.none()
+
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
+    def history(self, request):
+        if request.user.role == 'freelancer':
+            commission_logs = self.get_queryset().filter(
+                job__applications__freelancer=request.user,
+                job__applications__status='accepted'
+            ).order_by('-completion_date')
+            serializer = self.get_serializer(commission_logs, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        elif request.user.role == 'employer':
+            commission_logs = self.get_queryset().filter(
+                job__employer=request.user
+            ).order_by('-completion_date')
+            serializer = self.get_serializer(commission_logs, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response({"detail": "You do not have permission to view this."}, status=status.HTTP_403_FORBIDDEN)
 
 
 class CommissionExcuseViewSet(viewsets.ModelViewSet):
