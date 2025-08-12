@@ -49,4 +49,8 @@ api.interceptors.response.use(
   }
 );
 
+export const getCommissionHistory = async () => {
+  return api.get("/commissions/history/");
+};
+
 export default api;
