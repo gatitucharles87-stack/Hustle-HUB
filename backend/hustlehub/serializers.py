@@ -17,7 +17,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'email', 'full_name', 'role', 'date_joined', 'last_login', 'username', 'referral_code', 'xp_points', 'bio', 'skills', 'service_areas', 'is_remote', 'avatar_url', 'average_rating']
+        fields = ['id', 'email', 'full_name', 'role', 'date_joined', 'last_login', 'username', 'referral_code', 'xp_points', 'bio', 'skills', 'service_areas', 'is_remote_available', 'avatar_url', 'average_rating']
         read_only_fields = ['id', 'full_name', 'role', 'date_joined', 'last_login', 'referral_code', 'xp_points', 'average_rating']
 
     def get_average_rating(self, obj):
