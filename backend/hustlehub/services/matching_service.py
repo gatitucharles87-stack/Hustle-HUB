@@ -1,16 +1,16 @@
-import google.generativeai as genai
+[import google.generativeai as genai
 import os
 import json
 import logging
 from django.conf import settings
-from decouple import config
+# from decouple import config # Removed decouple import
 
 logger = logging.getLogger(__name__)
 
 def configure_gemini():
     """Configures the Gemini API key."""
-    # Use decouple.config to read from the .env file
-    api_key = config("GEMINI_API_KEY", default=None) 
+    # Use os.getenv to read from environment variables
+    api_key = os.getenv("GEMINI_API_KEY") 
     if not api_key:
         logger.critical("CRITICAL: GEMINI_API_KEY environment variable not set. The service cannot function.")
         raise ValueError("GEMINI_API_KEY environment variable not set.")
