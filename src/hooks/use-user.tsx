@@ -12,14 +12,14 @@ interface User {
   role: string;
   date_joined: string;
   last_login: string;
-  avatar?: string; // Changed from profilePictureUrl to avatar
+  avatar?: string; 
   username?: string; 
   referral_code?: string; 
   xp_points?: number; 
   level?: number; 
-  bio?: string; // Added bio
-  skills?: string[]; // Added skills
-  service_areas?: string[] | string; // Added service_areas
+  bio?: string; 
+  skills?: string[]; 
+  service_areas?: string[] | string; 
 }
 
 export function useUser() {
@@ -29,19 +29,26 @@ export function useUser() {
 
   const fetchUser = useCallback(async () => {
     setLoading(true);
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      setUser(null);
+      setLoading(false);
+      return; // Exit if no token is present
+    }
+
     try {
       const response = await api.get<any>('/auth/me'); 
       setUser({
           ...response.data,
           fullName: response.data.full_name, 
-          avatar: response.data.avatar, // Ensure this maps correctly
+          avatar: response.data.avatar, 
       });
-    } catch (error) {
+    } catch (error: any) { // Explicitly type error as 'any'
       console.error('Failed to fetch user', error);
-      // Optionally redirect to login if auth token is invalid
-      // if (error.response && error.response.status === 401) {
-      //   logout();
-      // }
+      // If the token is invalid (e.g., 401), log out the user
+      if (error.response && error.response.status === 401) {
+        logout();
+      }
     } finally {
       setLoading(false);
     }
