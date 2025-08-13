@@ -149,6 +149,10 @@ export const loginUser = async (credentials: any) => {
     return _backendApi.post("/token/", credentials);
 };
 
+export const signupUser = async (userData: any) => {
+    return _backendApi.post("/users/", userData);
+};
+
 export const getCommissionHistory = async () => {
   if (shouldUseMock("/commissions/history/")) {
     return getMockCommissionHistory();

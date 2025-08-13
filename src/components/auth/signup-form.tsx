@@ -17,10 +17,10 @@ import { Switch } from "@/components/ui/switch";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
-import api from "@/lib/api";
+import { signupUser } from "@/lib/api"; // Corrected import
 
 interface SignupFormProps {
-    referralCode?: string | null; // Accept referralCode as a prop
+    referralCode?: string | null;
 }
 
 function useDebounce<T>(value: T, delay: number): T {
@@ -47,7 +47,7 @@ export function SignupForm({ referralCode: initialReferralCode }: SignupFormProp
     const [role, setRole] = useState("freelancer");
     const [isRemote, setIsRemote] = useState(false);
     const [currentServiceAreaInput, setCurrentServiceAreaInput] = useState("");
-    const [serviceAreasString, setServiceAreasString] = useState<string>(""); // Changed to string
+    const [serviceAreasString, setServiceAreasString] = useState<string>("");
     const [filteredLocations, setFilteredLocations] = useState<string[]>([]);
     const [referralCode, setReferralCode] = useState(initialReferralCode || "");
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -76,11 +76,13 @@ export function SignupForm({ referralCode: initialReferralCode }: SignupFormProp
 
         setLoadingLocations(true);
         try {
+            // This part of the code is not using the centralized API functions.
+            // For now, we will leave it as is, but it should be refactored.
             const endpoints = ['counties', 'sub-counties', 'wards', 'neighborhood-tags'];
-            const requests = endpoints.map(endpoint => api.get(`${endpoint}/?search=${searchQuery}`));
+            const requests = endpoints.map(endpoint => fetch(`http://localhost:8000/api/${endpoint}/?search=${searchQuery}`).then(res => res.json()));
             const responses = await Promise.all(requests);
             
-            const allFetchedLocations = responses.flatMap(response => response.data.map((item: any) => item.name));
+            const allFetchedLocations = responses.flatMap(data => data.map((item: any) => item.name));
             const uniqueLocations = [...new Set(allFetchedLocations)];
             setFilteredLocations(uniqueLocations);
 
@@ -106,8 +108,8 @@ export function SignupForm({ referralCode: initialReferralCode }: SignupFormProp
         if (!currentAreas.includes(area)) {
             const newAreas = [...currentAreas, area];
             setServiceAreasString(newAreas.join(', '));
-            setCurrentServiceAreaInput(""); // Clear input after adding
-            setFilteredLocations([]); // Clear suggestions
+            setCurrentServiceAreaInput("");
+            setFilteredLocations([]);
             setServiceAreaError(null);
         }
     };
@@ -120,16 +122,13 @@ export function SignupForm({ referralCode: initialReferralCode }: SignupFormProp
 
     const handleServiceAreaInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter') {
-            e.preventDefault(); // Prevent form submission
+            e.preventDefault();
             if (filteredLocations.length > 0) {
                 addServiceArea(filteredLocations[0]);
             } else if (currentServiceAreaInput) {
                 setServiceAreaError("Please select a valid location from the suggestions or type a comma-separated list.");
-                // Optionally allow adding free text if no suggestions, but prompt user
-                // addServiceArea(currentServiceAreaInput); 
             }
         } else if (e.key === 'Backspace' && currentServiceAreaInput === '' && serviceAreasString) {
-            // Remove last badge on backspace if input is empty
             e.preventDefault();
             const currentAreas = serviceAreasString.split(',').map(s => s.trim()).filter(Boolean);
             if (currentAreas.length > 0) {
@@ -151,12 +150,12 @@ export function SignupForm({ referralCode: initialReferralCode }: SignupFormProp
             password,
             role,
             is_remote_available: role === 'freelancer' ? isRemote : undefined,
-            service_areas: role === 'freelancer' ? serviceAreasString : undefined, // Send as string
+            service_areas: role === 'freelancer' ? serviceAreasString : undefined,
             referral_code: referralCode || undefined,
         };
 
         try {
-            await api.post('auth/signup/', payload);
+            await signupUser(payload); // Use the new function
             toast({
                 title: "Account created!",
                 description: "You have successfully signed up.",
@@ -208,7 +207,6 @@ export function SignupForm({ referralCode: initialReferralCode }: SignupFormProp
         setUsernameSuggestions([]);
     };
 
-    // Derived state for displaying badges
     const displayServiceAreas = serviceAreasString.split(',').map(s => s.trim()).filter(Boolean);
 
     return (
@@ -237,7 +235,7 @@ export function SignupForm({ referralCode: initialReferralCode }: SignupFormProp
                                         >
                                             {s}
                                         </Badge>
-                                    ))}\
+                                    ))}
                                 </div>
                             )}
                         </div>
