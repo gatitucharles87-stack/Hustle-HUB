@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
-import api from "@/lib/api";
+import { getUserProfile, updateUserProfile } from "@/lib/api"; // Corrected import
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Edit, User, Mail, Briefcase, Info, XCircle, Loader2, AlertCircle } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -46,7 +46,7 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
-  const [serviceAreas, setServiceAreas] = useState<string[]>([]); // Changed to array
+  const [serviceAreas, setServiceAreas] = useState<string[]>([]);
   const [bio, setBio] = useState("");
   const [skills, setSkills] = useState<string[]>([]);
   const [skillInput, setSkillInput] = useState("");
@@ -66,7 +66,6 @@ export default function ProfilePage() {
     if (user) {
       setUsername(user.username || "");
       setEmail(user.email || "");
-      // Initialize serviceAreas as an array of strings, splitting by comma
       setServiceAreas(
           Array.isArray(user.service_areas)
               ? user.service_areas
@@ -91,7 +90,7 @@ export default function ProfilePage() {
         setLoadingLocations(true);
         try {
             const endpoints = ['counties', 'sub-counties', 'wards', 'neighborhood-tags'];
-            const requests = endpoints.map(endpoint => api.get(`${endpoint}/?search=${searchQuery}`));
+            const requests = endpoints.map(endpoint => fetch(`http://localhost:8000/api/${endpoint}/?search=${searchQuery}`).then(res => res.json())); // Direct fetch
             const responses = await Promise.all(requests);
             
             const allFetchedLocations = responses.flatMap(response => response.data.map((item: any) => item.name));
@@ -134,8 +133,8 @@ export default function ProfilePage() {
       const trimmedArea = area.trim();
       if (trimmedArea && !serviceAreas.includes(trimmedArea)) {
           setServiceAreas([...serviceAreas, trimmedArea]);
-          setCurrentServiceAreaInput(""); // Clear input after adding
-          setFilteredLocations([]); // Clear suggestions
+          setCurrentServiceAreaInput("");
+          setFilteredLocations([]);
           setServiceAreaError(null);
       }
   };
@@ -146,16 +145,13 @@ export default function ProfilePage() {
 
   const handleServiceAreaInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
       if (e.key === 'Enter') {
-          e.preventDefault(); // Prevent form submission
+          e.preventDefault();
           if (filteredLocations.length > 0) {
               addServiceArea(filteredLocations[0]);
           } else if (currentServiceAreaInput) {
               setServiceAreaError("Please select a valid location from the suggestions or type a comma-separated list.");
-              // Optionally allow adding free text if no suggestions, but prompt user
-              // addServiceArea(currentServiceAreaInput); 
           }
       } else if (e.key === 'Backspace' && currentServiceAreaInput === '' && serviceAreas.length > 0) {
-          // Remove last badge on backspace if input is empty
           e.preventDefault();
           removeServiceArea(serviceAreas[serviceAreas.length - 1]);
       }
@@ -168,11 +164,11 @@ export default function ProfilePage() {
       const payload = {
         username,
         email,
-        service_areas: serviceAreas.join(', '), // Join back to comma-separated string for backend
+        service_areas: serviceAreas.join(', '),
         bio,
         skills
       };
-      const { data } = await api.patch('/auth/me/', payload);
+      const { data } = await updateUserProfile(payload); // Changed to updateUserProfile
       mutateUser(data, false);
       setIsEditing(false);
 
@@ -214,9 +210,9 @@ export default function ProfilePage() {
         );
         setBio(user.bio || "");
         setSkills(user.skills || []);
-        setCurrentServiceAreaInput(""); // Clear search input
-        setFilteredLocations([]); // Clear filtered locations
-        setServiceAreaError(null); // Clear error
+        setCurrentServiceAreaInput("");
+        setFilteredLocations([]);
+        setServiceAreaError(null);
     }
     setIsEditing(false);
   };
@@ -440,8 +436,7 @@ export default function ProfilePage() {
                 ) : (
                     <div className="p-3 border rounded-md bg-gray-50 dark:bg-gray-700 min-h-[40px] flex gap-2 flex-wrap items-center">
                         {user.service_areas && user.service_areas.length > 0 ? (
-                            // Ensure service_areas is treated as a string, then split and map
-                            (Array.isArray(user.service_areas) ? user.service_areas : user.service_areas.split(',')).map((area: string) => (
+                            (Array.isArray(user.service_areas) ? user.service_areas : (user.service_areas as string).split(',')).map((area: string) => (
                                 <Badge key={area.trim()}>{area.trim()}</Badge>
                             ))
                         ) : (
