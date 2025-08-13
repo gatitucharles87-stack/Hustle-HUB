@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import {
     Table,
@@ -54,32 +54,31 @@ export default function MyGigsPage() {
   const { toast } = useToast();
   const { user, loading: userLoading } = useUser();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      if (userLoading) return; // Wait for user data to load
+  const fetchData = useCallback(async () => {
+    if (userLoading) return; // Wait for user data to load
 
-      if (!user) {
-        toast({
-          title: "Authentication Required",
-          description: "Please log in to view your gigs.",
-          variant: "destructive",
-        });
-        setLoadingApplications(false);
-        setLoadingListings(false);
-        setLoadingGigs(false);
-        return;
-      }
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to view your gigs.",
+        variant: "destructive",
+      });
+      setLoadingApplications(false);
+      setLoadingListings(false);
+      setLoadingGigs(false);
+      return;
+    }
 
-      if (user.role === "freelancer") {
-        setLoadingApplications(true);
-        try {
-          const response = await api.get("/jobs/my-applications/");
-          const applications: JobApplication[] = response.data.applications; // Access .applications
-          setAppliedJobs(applications);
+    if (user.role === "freelancer") {
+      setLoadingApplications(true);
+      try {
+        const response = await api.get("/jobs/my-applications/");
+        const applications: JobApplication[] = response.data.applications; // Access .applications
+        setAppliedJobs(applications);
 
-          const gigs = applications
-            .filter(app => app.status === "Accepted" && app.job.deadline)
-            .map(app => ({
+        const gigs = applications
+          .filter(app => app.status === "Accepted" && app.job.deadline)
+          .map(app => ({
               title: app.job.title,
               employer: app.job.employer_name || "", 
               date: new Date(app.job.deadline),
@@ -127,10 +126,11 @@ export default function MyGigsPage() {
           setLoadingGigs(false);
         }
       }
-    };
+    }, [user, userLoading, toast, setAppliedJobs, setMyListings, setUpcomingGigs, setLoadingApplications, setLoadingListings, setLoadingGigs]);
 
+  useEffect(() => {
     fetchData();
-  }, [user, userLoading, toast]);
+  }, [fetchData]);
 
   const isLoading = userLoading || (user?.role === "freelancer" ? loadingApplications : loadingListings);
 
