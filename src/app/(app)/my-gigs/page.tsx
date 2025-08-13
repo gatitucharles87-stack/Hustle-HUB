@@ -13,7 +13,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Briefcase, Calendar, CheckCircle, Clock } from "lucide-react";
 import { JobCalendar } from "@/components/job-calendar";
-import { getMockMyApplications, getMockMyPosts } from "@/lib/mockApi";
+import * as api from "@/lib/api"; // Changed to import * as api
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/hooks/use-user";
@@ -27,6 +27,7 @@ interface Job {
   tags: string[];
   description: string;
   deadline: string;
+  employer?: { id: string; name: string }; // Added employer object
   employer_name?: string;
 }
 
@@ -77,7 +78,7 @@ export default function MyGigsPage() {
     if (user.is_freelancer) {
       setLoadingApplications(true);
       try {
-        const response: ApiResponse<JobApplication[]> = await getMockMyApplications(user.id) as ApiResponse<JobApplication[]>;
+        const response: ApiResponse<JobApplication[]> = await api.getMyApplications(user.id) as ApiResponse<JobApplication[]>; // Corrected to use named export
         const applications = response.data;
         setAppliedJobs(applications);
 
@@ -105,8 +106,8 @@ export default function MyGigsPage() {
       } else if (user.is_employer) {
         setLoadingListings(true);
         try {
-          const response: ApiResponse<Job[]> = await getMockMyPosts(user.id) as ApiResponse<Job[]>;
-          const listings = response.data;
+          const response: ApiResponse<Job[]> = await api.getJobs() as ApiResponse<Job[]>; // Corrected to use named export and get all jobs for employer to filter
+          const listings = response.data.filter(job => job.employer?.id === user.id); // Assuming job.employer.id exists for filtering
           setMyListings(listings);
 
           const gigs = listings

@@ -18,8 +18,6 @@ import {
   markMockNotificationAsRead,
   getMockFreelancers,
   getMockFreelancerById,
-  getMockUserProfile,
-  updateMockUserProfile,
   getMockDashboardStats,
   getMockApplicantsForJob,
   generateMockJobPostAI,
@@ -292,6 +290,7 @@ export const getApplicantsForJob = async (jobId: string) => {
 };
 
 export const generateJobPostAI = async (prompt: string) => {
+  // This function always uses the mock AI to generate content
   return generateMockJobPostAI(prompt);
 };
 

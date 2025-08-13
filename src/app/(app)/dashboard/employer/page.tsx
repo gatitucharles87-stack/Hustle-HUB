@@ -19,7 +19,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { ReviewForm } from "@/components/review-form";
 import { TypingText } from "@/components/typing-text";
 import { Separator } from "@/components/ui/separator";
-import api from "@/lib/api"; // Import API client
+import * as api from "@/lib/api"; // Changed to import * as api
 import { useUser } from "@/hooks/use-user"; // Import useUser hook
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -53,7 +53,7 @@ export default function EmployerDashboardPage() {
     // Fetch Jobs
     setLoadingJobs(true);
     try {
-      const jobsResponse = await api.get(`/jobs/?employer=${user.id}`);
+      const jobsResponse = await api.getJobs(); // Changed to use named export
       setJobs(jobsResponse.data);
     } catch (error) {
       console.error("Failed to fetch jobs for employer:", error);

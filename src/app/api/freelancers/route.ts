@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { mockFreelancers } from '@/lib/mockApi'; // Import mock data
+import { mockUsers } from '@/lib/mockApi'; // Import mockUsers
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -7,8 +7,8 @@ export async function GET(request: NextRequest) {
   const category = searchParams.get('category');
   const location = searchParams.get('location');
 
-  // Filter mock data based on query parameters (simplified)
-  let filteredFreelancers = mockFreelancers;
+  // Filter mock data based on query parameters
+  let filteredFreelancers = mockUsers.filter(user => user.user_type === 'freelancer');
 
   if (keywords) {
     const lowerCaseKeywords = keywords.toLowerCase();
