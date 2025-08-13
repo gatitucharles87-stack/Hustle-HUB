@@ -9,7 +9,7 @@ import Link from "next/link";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import api from "@/lib/api";
+import { loginUser } from "@/lib/api"; // Corrected import
 import { useToast } from "@/hooks/use-toast";
 
 export function LoginForm() {
@@ -21,7 +21,7 @@ export function LoginForm() {
 
   const handleLogin = async () => {
     try {
-      const response = await api.post("/token/", {
+      const response = await loginUser({ // Use the new function
         email,
         password,
       });

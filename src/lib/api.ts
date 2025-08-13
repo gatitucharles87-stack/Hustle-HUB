@@ -70,11 +70,10 @@ _backendApi.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // Prevent infinite loops for refresh token endpoint itself
     if (originalRequest.url === "/token/refresh/") {
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");
-      window.location.href = "/login"; // Redirect to login on refresh token failure
+      window.location.href = "/login";
       return Promise.reject(error);
     }
 
@@ -115,13 +114,12 @@ _backendApi.interceptors.response.use(
           processQueue(refreshError, null);
           localStorage.removeItem("accessToken");
           localStorage.removeItem("refreshToken");
-          window.location.href = "/login"; // Redirect to login on refresh fails
+          window.location.href = "/login";
           return Promise.reject(refreshError);
         } finally {
           isRefreshing = false;
         }
       } else {
-        // No refresh token available, redirect to login
         localStorage.removeItem("accessToken");
         localStorage.removeItem("refreshToken");
         window.location.href = "/login";
@@ -134,21 +132,23 @@ _backendApi.interceptors.response.use(
 );
 
 const integratedPaths = [
-  "/token/", // For login/refresh
-  "/users/me/", // For profile management (view/update user's own profile)
+  "/token/",
+  "/users/me/",
   "/users/password/reset/",
   "/users/set_password/",
-  "/users/", // For signup
-  "/dashboard/", // For dashboard data
+  "/users/",
+  "/dashboard/",
 ];
 
 const shouldUseMock = (url: string) => {
-  // Check if the URL is part of the integrated paths
   const isIntegrated = integratedPaths.some(path => url.startsWith(path));
   return !isIntegrated;
 };
 
-// --- API Functions ---
+export const loginUser = async (credentials: any) => {
+    return _backendApi.post("/token/", credentials);
+};
+
 export const getCommissionHistory = async () => {
   if (shouldUseMock("/commissions/history/")) {
     return getMockCommissionHistory();
@@ -269,17 +269,14 @@ export const getFreelancerById = async (id: string) => {
 };
 
 export const getUserProfile = async () => {
-  // This is a core profile management call, so it's always real
   return _backendApi.get("/users/me/");
 };
 
 export const updateUserProfile = async (profileData: any) => {
-  // This is a core profile management call, so it's always real
   return _backendApi.patch("/users/me/", profileData);
 };
 
 export const getDashboardStats = async (userType: 'freelancer' | 'employer') => {
-  // Dashboard stats are real
   return _backendApi.get(`/dashboard/${userType}/`);
 };
 
@@ -291,7 +288,6 @@ export const getApplicantsForJob = async (jobId: string) => {
 };
 
 export const generateJobPostAI = async (prompt: string) => {
-  // AI Feature should use mock data for presentation
   return generateMockJobPostAI(prompt);
 };
 
