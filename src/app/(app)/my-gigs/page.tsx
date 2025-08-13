@@ -13,7 +13,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Briefcase, Calendar, CheckCircle, Clock } from "lucide-react";
 import { JobCalendar } from "@/components/job-calendar";
-import api from "@/lib/api";
+import { getMockMyApplications, getMockMyPosts } from "@/lib/mockApi";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/hooks/use-user";
@@ -26,15 +26,15 @@ interface Job {
   location: string;
   tags: string[];
   description: string;
-  deadline: string; // Added deadline for employer listings
-  employer_name?: string; // Optional employer name, if backend provides it for applications
+  deadline: string;
+  employer_name?: string;
 }
 
 interface JobApplication {
     id: string;
-    job: Job; // Use the updated Job interface
-    status: string; // e.g., "Pending", "Accepted", "Rejected"
-    applied_date: string; // Date string from backend
+    job: Job;
+    status: string;
+    applied_date: string;
 }
 
 interface CalendarEvent {
@@ -42,6 +42,11 @@ interface CalendarEvent {
     employer: string;
     date: Date;
     status: string;
+}
+
+// Define explicit types for the mock API responses
+interface ApiResponse<T> {
+  data: T;
 }
 
 export default function MyGigsPage() {
@@ -55,7 +60,7 @@ export default function MyGigsPage() {
   const { user, loading: userLoading } = useUser();
 
   const fetchData = useCallback(async () => {
-    if (userLoading) return; // Wait for user data to load
+    if (userLoading) return;
 
     if (!user) {
       toast({
@@ -69,11 +74,11 @@ export default function MyGigsPage() {
       return;
     }
 
-    if (user.role === "freelancer") {
+    if (user.is_freelancer) {
       setLoadingApplications(true);
       try {
-        const response = await api.get("/jobs/my-applications/");
-        const applications: JobApplication[] = response.data.applications; // Access .applications
+        const response: ApiResponse<JobApplication[]> = await getMockMyApplications(user.id) as ApiResponse<JobApplication[]>;
+        const applications = response.data;
         setAppliedJobs(applications);
 
         const gigs = applications
@@ -87,7 +92,7 @@ export default function MyGigsPage() {
           setUpcomingGigs(gigs);
 
         } catch (error) {
-          console.error("Failed to fetch job applications", error);
+          console.error("Failed to fetch job applications (mock)", error);
           toast({
             title: "Error",
             description: "Failed to load job applications. Please try again.",
@@ -97,25 +102,25 @@ export default function MyGigsPage() {
           setLoadingApplications(false);
           setLoadingGigs(false);
         }
-      } else if (user.role === "employer") {
+      } else if (user.is_employer) {
         setLoadingListings(true);
         try {
-          const response = await api.get("/jobs/my-listings/");
-          const listings: Job[] = response.data.jobs; // Access .jobs
+          const response: ApiResponse<Job[]> = await getMockMyPosts(user.id) as ApiResponse<Job[]>;
+          const listings = response.data;
           setMyListings(listings);
 
           const gigs = listings
             .filter(job => job.deadline)
             .map(job => ({
               title: job.title,
-              employer: user.fullName, // Employer is the current user
+              employer: user.first_name + " " + user.last_name,
               date: new Date(job.deadline),
-              status: "Listed", // Or a relevant status for employer's jobs
+              status: "Listed",
             }));
           setUpcomingGigs(gigs);
 
         } catch (error) {
-          console.error("Failed to fetch job listings", error);
+          console.error("Failed to fetch job listings (mock)", error);
           toast({
             title: "Error",
             description: "Failed to load job listings. Please try again.",
@@ -126,20 +131,20 @@ export default function MyGigsPage() {
           setLoadingGigs(false);
         }
       }
-    }, [user, userLoading, toast, setAppliedJobs, setMyListings, setUpcomingGigs, setLoadingApplications, setLoadingListings, setLoadingGigs]);
+    }, [user, userLoading, toast]);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  const isLoading = userLoading || (user?.role === "freelancer" ? loadingApplications : loadingListings);
+  const isLoading = userLoading || (user?.is_freelancer ? loadingApplications : loadingListings);
 
   return (
     <div className="flex flex-col gap-8">
         <div>
             <h1 className="text-3xl font-bold tracking-tight font-headline">My Gigs</h1>
             <p className="text-muted-foreground">
-                {user?.role === "freelancer" ? "Track your job applications and upcoming gigs." : "Manage your job listings and upcoming events."}
+                {user?.is_freelancer ? "Track your job applications and upcoming gigs." : "Manage your job listings and upcoming events."}
             </p>
         </div>
 
@@ -162,7 +167,7 @@ export default function MyGigsPage() {
             </div>
         ) : (
             <>
-                {user?.role === "freelancer" && (
+                {user?.is_freelancer && (
                     <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2"><Briefcase /> Active Applications</CardTitle>
@@ -202,7 +207,7 @@ export default function MyGigsPage() {
                     </Card>
                 )}
 
-                {user?.role === "employer" && (
+                {user?.is_employer && (
                     <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2"><Briefcase /> My Job Listings</CardTitle>
@@ -223,6 +228,7 @@ export default function MyGigsPage() {
                                         {myListings.map((job) => (
                                             <TableRow key={job.id}>
                                                 <TableCell className="font-medium">{job.title}</TableCell>
+
                                                 <TableCell>{job.category.name}</TableCell>
                                                 <TableCell>{new Date(job.deadline).toLocaleDateString()}</TableCell>
                                                 <TableCell>

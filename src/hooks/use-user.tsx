@@ -2,11 +2,11 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
-import api from '@/lib/api';
 import { useRouter } from 'next/navigation';
+import { getUserProfile } from '@/lib/api'; // Corrected import
 
 interface User {
-  id: string; // Changed to string to match UUID
+  id: string; 
   email: string;
   fullName: string; 
   role: string;
@@ -20,6 +20,10 @@ interface User {
   bio?: string; 
   skills?: string[]; 
   service_areas?: string[] | string; 
+  is_freelancer?: boolean;
+  is_employer?: boolean;
+  first_name: string;
+  last_name: string;
 }
 
 export function useUser() {
@@ -33,19 +37,22 @@ export function useUser() {
     if (!token) {
       setUser(null);
       setLoading(false);
-      return; // Exit if no token is present
+      return; 
     }
 
     try {
-      const response = await api.get<any>('/auth/me'); 
+      const response = await getUserProfile(); 
       setUser({
           ...response.data,
           fullName: response.data.full_name, 
           avatar: response.data.avatar, 
+          first_name: response.data.first_name || '',
+          last_name: response.data.last_name || '', 
+          is_freelancer: response.data.is_freelancer,
+          is_employer: response.data.is_employer,
       });
-    } catch (error: any) { // Explicitly type error as 'any'
+    } catch (error: any) {
       console.error('Failed to fetch user', error);
-      // If the token is invalid (e.g., 401), log out the user
       if (error.response && error.response.status === 401) {
         logout();
       }
@@ -62,18 +69,17 @@ export function useUser() {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
     sessionStorage.removeItem('userRole');
-    setUser(null); // Clear user state on logout
+    setUser(null); 
     router.push('/login');
   };
 
-  // Function to manually update user data in state (e.g., after a successful API call)
   const mutateUser = (newData: Partial<User>, revalidate: boolean = true) => {
     setUser(prevUser => {
       if (!prevUser) return null;
       return { ...prevUser, ...newData };
     });
     if (revalidate) {
-      fetchUser(); // Re-fetch from API to ensure consistency
+      fetchUser(); 
     }
   };
 
