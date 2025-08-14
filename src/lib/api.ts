@@ -39,6 +39,9 @@ import {
   getMockApplicantsForJob
 } from "./mockApi";
 
+import { generateJobPost, GenerateJobPostInput, GenerateJobPostOutput } from "@/ai/flows/generate-job-post";
+import { generateBarterPost, GenerateBarterPostInput, GenerateBarterPostOutput } from "@/ai/flows/generate-barter-post";
+
 const _backendApi = axios.create({
   baseURL: "http://localhost:8000/api",
   headers: {
@@ -140,8 +143,8 @@ const integratedPaths = [
   "/users/password/reset/",
   "/users/set_password/",
   "/users/",
-  "/ai/generate-job-post/",
-  "/ai/generate-barter-post/", 
+  // "/ai/generate-job-post/", // Removed as it's handled client-side
+  // "/ai/generate-barter-post/", // Removed as it's handled client-side
 ];
 
 const shouldUseMock = (url: string) => {
@@ -179,10 +182,12 @@ export const getJobCategories = async () => {
 };
 
 export const getJobs = async (params: any = {}) => {
-  if (shouldUseMock("/jobs/")) {
-    return getMockJobs(params); // Pass params to mock function
-  }
-  return _backendApi.get("/jobs/", { params });
+  // Temporarily force mock data for My Gigs page diagnosis
+  return getMockJobs(params);
+  // if (shouldUseMock("/jobs/")) {
+  //   return getMockJobs(params); // Pass params to mock function
+  // }
+  // return _backendApi.get("/jobs/", { params });
 };
 
 export const getJobById = async (id: string) => {
@@ -295,14 +300,14 @@ export const getApplicantsForJob = async (jobId: string) => {
   return _backendApi.get(`/jobs/${jobId}/applicants/`);
 };
 
-export const generateJobPostAI = async (prompt: string) => {
-  // This will hit your actual backend endpoint
-  return _backendApi.post("/ai/generate-job-post/", { prompt });
+export const generateJobPostAI = async (input: GenerateJobPostInput) => {
+  // Call the frontend AI logic directly
+  return generateJobPost(input);
 };
 
-export const generateBarterPostAI = async (prompt: string) => {
-  // This will hit your actual backend endpoint
-  return _backendApi.post("/ai/generate-barter-post/", { prompt });
+export const generateBarterPostAI = async (input: GenerateBarterPostInput) => {
+  // Call the frontend AI logic directly
+  return generateBarterPost(input);
 };
 
 export const getLoyaltyPoints = async () => {
@@ -327,10 +332,12 @@ export const getMyPosts = async (userId: string) => {
 };
 
 export const getMyApplications = async (userId: string) => {
-  if (shouldUseMock(`/job-applications/my-applications/?user_id=${userId}`)) {
-    return getMockMyApplications(userId);
-  }
-  return _backendApi.get(`/job-applications/my-applications/`);
+  // Temporarily force mock data for My Gigs page diagnosis
+  return getMockMyApplications(userId);
+  // if (shouldUseMock(`/job-applications/my-applications/?user_id=${userId}`)) {
+  //   return getMockMyApplications(userId);
+  // }
+  // return _backendApi.get(`/job-applications/my-applications/`);
 };
 
 export const getEmployerApplications = async (employerId: string) => {

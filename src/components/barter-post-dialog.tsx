@@ -35,25 +35,27 @@ export function BarterPostDialog({ children, onPostCreated }: BarterPostDialogPr
   // State for AI generated content display (re-introduced)
   const [generatedTitle, setGeneratedTitle] = useState("");
   const [generatedDescription, setGeneratedDescription] = useState("");
-  const [generatedSkillsOffered, setGeneratedSkillsOffered] = useState("");
-  const [generatedSkillsWanted, setGeneratedSkillsWanted] = useState("");
+  // const [generatedSkillsOffered, setGeneratedSkillsOffered] = useState("");
+  // const [generatedSkillsWanted, setGeneratedSkillsWanted] = useState("");
   
   const { toast } = useToast();
 
   const handleGenerateWithAI = async () => {
     // Use current form values as a prompt for AI
-    const prompt = `Generate a skill barter post based on the following: Title: ${title || ''}, Skills I can offer: ${skillsOffered || ''}, Skills I want in return: ${skillsWanted || ''}. Provide a compelling title, a detailed description, comma-separated skills offered, and comma-separated skills wanted.`;
+    const input = {
+      skillsToOffer: skillsOffered || '',
+      skillsToReceive: skillsWanted || '',
+    };
 
     setIsAiLoading(true);
     try {
-      const response = await api.generateBarterPostAI(prompt);
-      const aiData = response.data; // Assuming AI returns { title, description, skills_offered, skills_wanted }
+      const aiData = await api.generateBarterPostAI(input); 
       
       // Populate generated content for display
       setGeneratedTitle(aiData.title || "");
       setGeneratedDescription(aiData.description || "");
-      setGeneratedSkillsOffered(aiData.skills_offered ? (Array.isArray(aiData.skills_offered) ? aiData.skills_offered.join(', ') : aiData.skills_offered) : "");
-      setGeneratedSkillsWanted(aiData.skills_wanted ? (Array.isArray(aiData.skills_wanted) ? aiData.skills_wanted.join(', ') : aiData.skills_wanted) : "");
+      // setGeneratedSkillsOffered(aiData.skills_offered ? (Array.isArray(aiData.skills_offered) ? aiData.skills_offered.join(', ') : aiData.skills_offered) : "");
+      // setGeneratedSkillsWanted(aiData.skills_wanted ? (Array.isArray(aiData.skills_wanted) ? aiData.skills_wanted.join(', ') : aiData.skills_wanted) : "");
 
       toast({
         title: "AI Generated Content",
@@ -103,8 +105,8 @@ export function BarterPostDialog({ children, onPostCreated }: BarterPostDialogPr
         setSkillsWanted("");
         setGeneratedTitle("");
         setGeneratedDescription("");
-        setGeneratedSkillsOffered("");
-        setGeneratedSkillsWanted("");
+        // setGeneratedSkillsOffered("");
+        // setGeneratedSkillsWanted("");
       } else {
         toast({
           title: "Failed to Create Post",
@@ -212,7 +214,7 @@ export function BarterPostDialog({ children, onPostCreated }: BarterPostDialogPr
             Generate with AI
           </Button>
 
-          {(generatedTitle || generatedDescription || generatedSkillsOffered || generatedSkillsWanted) && (
+          {(generatedTitle || generatedDescription) && (
             <div className="space-y-4 pt-4 border-t border-dashed mt-6">
               <h3 className="text-lg font-semibold">Generated Barter Post Suggestions</h3>
               <p className="text-sm text-muted-foreground mb-4">Review the AI-generated suggestions below. You can copy and paste them into the main form fields above, or modify them as needed.</p>
@@ -226,7 +228,7 @@ export function BarterPostDialog({ children, onPostCreated }: BarterPostDialogPr
                   className="bg-muted/50"
                 />
               </div>
-              <div className="grid gap-2">
+              {/* <div className="grid gap-2">
                 <Label htmlFor="generated-skills-offered">Suggested Skills You Offer</Label>
                 <Input
                   id="generated-skills-offered"
@@ -243,7 +245,7 @@ export function BarterPostDialog({ children, onPostCreated }: BarterPostDialogPr
                   readOnly
                   className="bg-muted/50"
                 />
-              </div>
+              </div> */}
               <div className="grid gap-2">
                 <Label htmlFor="generated-description">Suggested Description</Label>
                 <Textarea
