@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, isValid } from "date-fns"; // Import isValid
 import {
   Sheet,
   SheetContent,
@@ -136,12 +136,18 @@ export function NotificationsDisplay({ isOpen, onClose, onUnreadCountChange }: N
                 </Button>
               </div>
               <ScrollArea className="h-[calc(100vh-200px)] pr-4"> {/* Adjust height based on header/footer */}
-                {notifications.map((notification: Notification) => (
+                {notifications.map((notification: Notification) => {
+                  const notificationDate = new Date(notification.created_at);
+                  const timeAgo = isValid(notificationDate)
+                    ? formatDistanceToNow(notificationDate, { addSuffix: true })
+                    : "Invalid date"; // Fallback for invalid date
+
+                  return (
                   <div key={notification.id} className={`p-3 rounded-md mb-2 flex items-center justify-between ${!notification.is_read ? 'bg-accent/20 border border-accent' : 'bg-muted/30'}`}>
                     <div>
                       <p className="text-sm">{notification.message}</p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
+                        {timeAgo}
                         {!notification.is_read && <span className="ml-2 text-primary font-semibold"> • New</span>}
                       </p>
                     </div>
@@ -153,7 +159,7 @@ export function NotificationsDisplay({ isOpen, onClose, onUnreadCountChange }: N
                       )}
                     </div>
                   </div>
-                ))}
+                )})}
               </ScrollArea>
             </>
           )}
