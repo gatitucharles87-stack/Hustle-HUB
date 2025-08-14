@@ -24,16 +24,27 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Sparkles } from "lucide-react";
 import * as api from "@/lib/api";
 
+interface JobCategory {
+  id: string;
+  name: string;
+}
+
 export function JobPostForm() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [budget, setBudget] = useState("");
   const [jobType, setJobType] = useState("");
   const [category, setCategory] = useState("");
-  const [jobCategories, setJobCategories] = useState([]);
+  const [requiredSkills, setRequiredSkills] = useState("");
+  const [experienceLevel, setExperienceLevel] = useState("");
+  const [jobCategories, setJobCategories] = useState<JobCategory[]>([]); // Explicitly type jobCategories
   const [isLoading, setIsLoading] = useState(false);
   const [isAiLoading, setIsAiLoading] = useState(false);
   const { toast } = useToast();
+
+  // State for AI generated content display
+  const [generatedTitle, setGeneratedTitle] = useState("");
+  const [generatedDescription, setGeneratedDescription] = useState("");
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -53,22 +64,29 @@ export function JobPostForm() {
   }, [toast]);
 
   const handleGenerateWithAI = async () => {
-    if (!title) {
-      toast({
-        title: "Title is required for AI generation",
-        variant: "destructive",
-      });
-      return;
-    }
+    // Combine relevant fields into a prompt for AI
+    const prompt = `Generate a job post. Job Type: ${jobType || 'Any'}. Experience Level: ${experienceLevel || 'Any'}. Required Skills: ${requiredSkills || 'None specified'}. Job Category: ${jobCategories.find(cat => cat.id === category)?.name || 'Any'}.`;
+
     setIsAiLoading(true);
     try {
-      const response = await api.generateJobPostAI(title);
-      setDescription(response.data.description);
+      const response = await api.generateJobPostAI(prompt);
+      // Assuming AI returns { title, description }
+      setGeneratedTitle(response.data.title || "");
+      setGeneratedDescription(response.data.description || "");
+
+      // Optionally, pre-fill form fields with generated content
+      setTitle(response.data.title || "");
+      setDescription(response.data.description || "");
+
+      toast({
+        title: "AI Generated Content",
+        description: "AI has generated content for your job post.",
+      });
     } catch (error) {
       console.error("AI generation failed", error);
       toast({
         title: "AI Generation Failed",
-        description: "Could not generate description.",
+        description: "Could not generate content with AI. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -86,6 +104,8 @@ export function JobPostForm() {
         budget,
         job_type: jobType,
         category,
+        required_skills: requiredSkills.split(',').map(s => s.trim()),
+        experience_level: experienceLevel,
       });
 
       if (response.status === 201) {
@@ -93,12 +113,16 @@ export function JobPostForm() {
           title: "Job Posted!",
           description: "Your job has been successfully posted.",
         });
-        // Reset form
+        // Reset form and generated content
         setTitle("");
         setDescription("");
         setBudget("");
         setJobType("");
         setCategory("");
+        setRequiredSkills("");
+        setExperienceLevel("");
+        setGeneratedTitle("");
+        setGeneratedDescription("");
       } else {
         toast({
           title: "Failed to Post Job",
@@ -124,14 +148,116 @@ export function JobPostForm() {
     <form onSubmit={handleSubmit}>
       <Card>
         <CardHeader>
-          <CardTitle>Post a New Job</CardTitle>
+          <CardTitle>Create a New Job Posting</CardTitle>
           <CardDescription>
-            Fill in the details below to find the perfect freelancer for your
-            project.
+            Fill in the details below. Use our AI assistant to generate a compelling title and description for you.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-2">
+        <CardContent className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="job-type">Job Type</Label>
+              <Select onValueChange={setJobType} value={jobType} required>
+                <SelectTrigger id="job-type">
+                  <SelectValue placeholder="Select job type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Remote">Remote</SelectItem>
+                  <SelectItem value="Local">Local</SelectItem>
+                  <SelectItem value="Hybrid">Hybrid</SelectItem>
+                  <SelectItem value="Full-time">Full-time</SelectItem>
+                  <SelectItem value="Part-time">Part-time</SelectItem>
+                  <SelectItem value="Freelance">Freelance</SelectItem>
+                  <SelectItem value="Contract">Contract</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="required-skills">Required Skills</Label>
+              <Input
+                id="required-skills"
+                placeholder="e.g., React, Django"
+                value={requiredSkills}
+                onChange={(e) => setRequiredSkills(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Separate skills with a comma.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="experience-level">Experience Level</Label>
+              <Select onValueChange={setExperienceLevel} value={experienceLevel} required>
+                <SelectTrigger id="experience-level">
+                  <SelectValue placeholder="Select experience level" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Entry-level">Entry-level</SelectItem>
+                  <SelectItem value="Junior">Junior</SelectItem>
+                  <SelectItem value="Mid-level">Mid-level</SelectItem>
+                  <SelectItem value="Senior">Senior</SelectItem>
+                  <SelectItem value="Lead">Lead</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="category">Job Category</Label>
+              <Select onValueChange={setCategory} value={category} required>
+                <SelectTrigger id="category">
+                  <SelectValue placeholder="Select a category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {jobCategories.map((cat: JobCategory) => (
+                    <SelectItem key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <Button
+            type="button"
+            className="w-full mt-4"
+            onClick={handleGenerateWithAI}
+            disabled={isAiLoading}
+          >
+            {isAiLoading ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Sparkles className="mr-2 h-4 w-4" />
+            )}
+            Generate with AI
+          </Button>
+
+          {(generatedTitle || generatedDescription) && (
+            <div className="space-y-4 pt-4 border-t border-dashed mt-6">
+              <h3 className="text-lg font-semibold">Generated Job Post</h3>
+              <div className="grid gap-2">
+                <Label htmlFor="generated-title">Job Title</Label>
+                <Input
+                  id="generated-title"
+                  value={generatedTitle}
+                  readOnly
+                  className="bg-muted/50"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="generated-description">Job Description</Label>
+                <Textarea
+                  id="generated-description"
+                  value={generatedDescription}
+                  readOnly
+                  rows={8}
+                  className="bg-muted/50 resize-none"
+                />
+              </div>
+            </div>
+          )}
+           <div className="grid gap-2">
             <Label htmlFor="title">Job Title</Label>
             <Input
               id="title"
@@ -143,7 +269,7 @@ export function JobPostForm() {
           </div>
           <div className="grid gap-2">
             <Label htmlFor="description">Description</Label>
-            <div className="relative">
+            <div>
               <Textarea
                 id="description"
                 placeholder="Describe the job requirements, responsibilities, and qualifications."
@@ -152,21 +278,6 @@ export function JobPostForm() {
                 rows={6}
                 required
               />
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="absolute bottom-2 right-2"
-                onClick={handleGenerateWithAI}
-                disabled={isAiLoading}
-              >
-                {isAiLoading ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Sparkles className="mr-2 h-4 w-4" />
-                )}
-                Generate with AI
-              </Button>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -181,35 +292,6 @@ export function JobPostForm() {
                 required
               />
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="job-type">Job Type</Label>
-              <Select onValueChange={setJobType} value={jobType} required>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select job type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Full-time">Full-time</SelectItem>
-                  <SelectItem value="Part-time">Part-time</SelectItem>
-                  <SelectItem value="Freelance">Freelance</SelectItem>
-                  <SelectItem value="Contract">Contract</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="category">Job Category</Label>
-            <Select onValueChange={setCategory} value={category} required>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a category" />
-              </SelectTrigger>
-              <SelectContent>
-                {jobCategories.map((cat: { id: string; name: string }) => (
-                  <SelectItem key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
         </CardContent>
         <CardFooter>

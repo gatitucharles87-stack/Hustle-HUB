@@ -24,12 +24,12 @@ interface JobDetails {
   duration: string;
   deadline: string;
   experience_level: string;
-  posted_by: {
+  posted_by?: {
     id: string;
     username: string;
     full_name: string;
     profile_picture_url: string;
-  };
+  }; // Made optional
   matched_skills?: string[];
 }
 
@@ -146,20 +146,22 @@ export default function JobDetailsPage() {
             </div>
           )}
 
-          <div className="space-y-2">
-            <p className="text-lg font-semibold">Posted By:</p>
-            <div className="flex items-center space-x-3">
-              {/* <Avatar> */}
-                {/* <AvatarImage src={job.posted_by.avatar} alt={job.posted_by.name} /> */}
-                {/* <AvatarFallback>{job.posted_by.name[0]}</AvatarFallback> */}
-              {/* </Avatar> */}
-              <div>
-                <Link href={`/freelancers/${job.posted_by.username}`} className="font-semibold text-blue-600 hover:underline">
-                  {job.posted_by.full_name}
-                </Link>
+          {job.posted_by && ( // Conditional rendering for posted_by
+            <div className="space-y-2">
+              <p className="text-lg font-semibold">Posted By:</p>
+              <div className="flex items-center space-x-3">
+                {/* <Avatar> */}
+                  {/* <AvatarImage src={job.posted_by.profile_picture_url} alt={job.posted_by.full_name} /> */}
+                  {/* <AvatarFallback>{job.posted_by.full_name[0]}</AvatarFallback> */}
+                {/* </Avatar> */}
+                <div>
+                  <Link href={`/freelancers/${job.posted_by.username}`} className="font-semibold text-blue-600 hover:underline">
+                    {job.posted_by.full_name}
+                  </Link>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </CardContent>
         <CardFooter className="flex justify-end">
           <Button onClick={() => setIsApplyModalOpen(true)}>
