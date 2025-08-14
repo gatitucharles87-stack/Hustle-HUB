@@ -28,7 +28,7 @@ interface Job {
   id: string;
   title: string;
   job_type: 'remote' | 'local' | 'hybrid';
-  status: 'open' | 'in_progress' | 'completed' | 'cancelled' | 'pending_review' | 'rejected';
+  status?: 'open' | 'in_progress' | 'completed' | 'cancelled' | 'pending_review' | 'rejected'; // Made status optional to handle potential undefined values
   accepted_applicant?: {
     id: string;
     full_name: string;
@@ -235,7 +235,7 @@ export default function EmployerDashboardPage() {
                       <TableRow key={job.id} className="hover:bg-muted/50 transition-colors">
                         <TableCell className="font-medium">{job.title}</TableCell>
                         <TableCell><Badge variant="secondary">{job.job_type}</Badge></TableCell>
-                        <TableCell><Badge className={job.status === 'open' ? 'bg-green-500 text-white' : job.status === 'in_progress' ? 'bg-blue-500 text-white' : ''}>{job.status.replace(/_/g, ' ')}</Badge></TableCell>
+                        <TableCell><Badge className={job.status === 'open' ? 'bg-green-500 text-white' : job.status === 'in_progress' ? 'bg-blue-500 text-white' : ''}>{job.status ? job.status.replace(/_/g, ' ') : 'Unknown Status'}</Badge></TableCell>
                         <TableCell className="space-x-2">
                           {job.status === 'completed' && job.accepted_applicant ? (
                             <Button
