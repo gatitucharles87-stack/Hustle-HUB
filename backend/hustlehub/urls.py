@@ -38,6 +38,8 @@ router.register(r'neighborhood-tags', NeighborhoodTagViewSet)
 
 # Base urlpatterns including the router
 urlpatterns = [
+    # Explicitly define /users/me/ before including the router to ensure it takes precedence
+    path('users/me/', AuthViewSet.as_view({'get': 'me', 'patch': 'me'}), name='user-me'),
     path('', include(router.urls)),
 
     # Preserving existing non-router paths
@@ -50,7 +52,6 @@ urlpatterns = [
     path('auth/signup/', AuthViewSet.as_view({'post': 'signup'}), name='auth-signup'),
     path('auth/login/', AuthViewSet.as_view({'post': 'login'}), name='auth-login'),
     path('auth/logout/', AuthViewSet.as_view({'post': 'logout'}), name='auth-logout'),
-    path('auth/me/', AuthViewSet.as_view({'get': 'me', 'patch': 'me'}), name='auth-me'),
 
     # New dashboard stats endpoint
     path('dashboard-stats/', DashboardStatsView.as_view(), name='dashboard-stats'),
