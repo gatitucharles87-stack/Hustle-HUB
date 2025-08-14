@@ -1,402 +1,227 @@
-'use client';
+"use client";
 
-import { useActionState, useEffect, useState, useCallback } from 'react';
-import { useFormStatus } from 'react-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { generateJobPostAction, postJobAction, type JobPostFormState, type PostJobState } from '@/lib/actions';
-import { Button } from '@/components/ui/button';
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
 import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { Wand2, Loader2, Send } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import api from '@/lib/api';
-
-interface JobCategory {
-  id: string;
-  name: string;
-}
-
-const formSchema = z.object({
-  skills: z.string().min(1, 'Skills are required.').transform(s => s.split(',').map(skill => skill.trim()).filter(Boolean)),
-  experience: z.string().min(1, 'Experience level is required.'),
-  category: z.string().min(1, 'Category is required.'), // This will be the category ID
-  jobType: z.enum(['remote', 'local']),
-  location: z.string().optional(),
-  title: z.string().min(1, 'Job title is required.'),
-  description: z.string().min(1, 'Job description is required.'),
-  budget: z.preprocess(
-    (val) => (val === '' ? null : Number(val)),
-    z.number().min(0, 'Budget cannot be negative.').nullable().optional()
-  ),
-  deadline: z.string().optional(),
-}).superRefine((data, ctx) => {
-    if (data.jobType === 'local' && (!data.location || data.location.length === 0)) {
-        ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: 'Location is required for local jobs.',
-            path: ['location'],
-        });
-    }
-    if (data.deadline && !/^\d{4}-\d{2}-\d{2}$/.test(data.deadline)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Deadline must be in YYYY-MM-DD format.',
-        path: ['deadline'],
-      });
-    }
-});
-
-
-type FormData = z.infer<typeof formSchema>;
-
-function AIGenerateButton() {
-  const { pending } = useFormStatus();
-  return (
-    <Button type="submit" disabled={pending} variant="secondary" name="action" value="generate">
-      {pending ? (
-        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-      ) : (
-        <Wand2 className="mr-2 h-4 w-4" />
-      )}
-      Generate with AI
-    </Button>
-  );
-}
-
-function PostJobSubmitButton() {
-  const { pending } = useFormStatus();
-  return (
-    <Button type="submit" size="lg" disabled={pending} name="action" value="post">
-      {pending ? (
-        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-      ) : (
-        <Send className="mr-2 h-4 w-4" />
-      )}
-      Post Job
-    </Button>
-  );
-}
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import { Loader2, Sparkles } from "lucide-react";
+import * as api from "@/lib/api";
 
 export function JobPostForm() {
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [budget, setBudget] = useState("");
+  const [jobType, setJobType] = useState("");
+  const [category, setCategory] = useState("");
+  const [jobCategories, setJobCategories] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isAiLoading, setIsAiLoading] = useState(false);
   const { toast } = useToast();
-  const initialGenerateState: JobPostFormState = { message: '', data: null };
-  const [generateState, generateFormAction] = useActionState(generateJobPostAction, initialGenerateState);
 
-  const initialPostState: PostJobState = { message: '', success: false };
-  const [postState, postFormAction] = useActionState(postJobAction, initialPostState);
-
-  const [jobCategories, setJobCategories] = useState<JobCategory[]>([]);
-
-  const form = useForm<FormData>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      skills: [], // Initialize as empty array
-      experience: '',
-      location: '',
-      category: '',
-      jobType: 'remote',
-      title: '',
-      description: '',
-      budget: null,
-      deadline: '',
-    },
-  });
-
-  const jobType = form.watch('jobType');
-
-  // Fetch job categories on component mount
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await api.get('/job-categories/');
+        const response = await api.getJobCategories();
         setJobCategories(response.data);
       } catch (error) {
-        console.error('Failed to fetch job categories:', error);
+        console.error("Failed to fetch job categories", error);
         toast({
-          title: 'Error',
-          description: 'Failed to load job categories.',
-          variant: 'destructive',
+          title: "Error",
+          description: "Could not load job categories.",
+          variant: "destructive",
         });
       }
     };
     fetchCategories();
   }, [toast]);
 
-  useEffect(() => {
-    if (generateState.message) {
-      if(generateState.errors || (generateState.message && !generateState.data)) {
-        toast({
-          title: 'Error generating post',
-          description: generateState.message,
-          variant: 'destructive',
-        });
-      }
-    }
-    if (generateState.data) {
-      form.setValue('title', generateState.data.title);
-      form.setValue('description', generateState.data.description);
-       toast({
-          title: 'Success!',
-          description: 'Job title and description have been generated.',
-        });
-    }
-  }, [generateState, form, toast]);
-
-  useEffect(() => {
-    if (postState.message) {
+  const handleGenerateWithAI = async () => {
+    if (!title) {
       toast({
-        title: postState.success ? 'Success!' : 'Error',
-        description: postState.message,
-        variant: postState.success ? 'default' : 'destructive',
+        title: "Title is required for AI generation",
+        variant: "destructive",
       });
-      if (postState.success) {
-        form.reset(); // Reset form on successful submission
-      }
+      return;
     }
-  }, [postState, form, toast]);
+    setIsAiLoading(true);
+    try {
+      const response = await api.generateJobPostAI(title);
+      setDescription(response.data.description);
+    } catch (error) {
+      console.error("AI generation failed", error);
+      toast({
+        title: "AI Generation Failed",
+        description: "Could not generate description.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAiLoading(false);
+    }
+  };
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault(); // Prevent default form submission
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    try {
+      const response = await api.postJob({
+        title,
+        description,
+        budget,
+        job_type: jobType,
+        category,
+      });
 
-    const formData = new FormData(event.currentTarget);
-    const action = formData.get('action'); // Get the value from the clicked button's 'name="action"' attribute
-
-    if (action === 'generate') {
-      generateFormAction(formData);
-    } else if (action === 'post') {
-      form.handleSubmit(() => {
-        // Need to convert form data to an object that postJobAction expects
-        // The form.getValues() will provide the validated data
-        const data = form.getValues();
-        const formDataForPost = new FormData();
-        for (const key in data) {
-          if (Object.prototype.hasOwnProperty.call(data, key)) {
-            const value = (data as any)[key];
-            if (Array.isArray(value)) {
-              formDataForPost.append(key, value.join(',')); // Convert array back to comma-separated string for action
-            } else if (value !== null && value !== undefined) {
-              formDataForPost.append(key, String(value));
-            }
-          }
-        }
-        postFormAction(formDataForPost);
-      })();
+      if (response.status === 201) {
+        toast({
+          title: "Job Posted!",
+          description: "Your job has been successfully posted.",
+        });
+        // Reset form
+        setTitle("");
+        setDescription("");
+        setBudget("");
+        setJobType("");
+        setCategory("");
+      } else {
+        toast({
+          title: "Failed to Post Job",
+          description: response.data?.detail || "An unexpected error occurred.",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      console.error("Error posting job:", error);
+      toast({
+        title: "Error",
+        description:
+          error.response?.data?.detail ||
+          "An unexpected error occurred while posting the job.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={handleSubmit} className="space-y-8">
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-            <FormField
-                control={form.control}
-                name="jobType"
-                render={({ field }) => (
-                <FormItem className="space-y-3">
-                    <FormLabel>Job Type</FormLabel>
-                    <FormControl>
-                    <RadioGroup
-                        onValueChange={(value) => {
-                            field.onChange(value);
-                            if (value === 'remote') {
-                                form.setValue('location', '');
-                                form.clearErrors('location');
-                            }
-                        }}
-                        value={field.value}
-                        className="flex flex-col space-y-1"
-                    >
-                        <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                            <RadioGroupItem value="remote" />
-                        </FormControl>
-                        <FormLabel className="font-normal">Remote</FormLabel>
-                        </FormItem>
-                        <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                            <RadioGroupItem value="local" />
-                        </FormControl>
-                        <FormLabel className="font-normal">Local</FormLabel>
-                        </FormItem>
-                    </RadioGroup>
-                    </FormControl>
-                    <FormMessage />
-                </FormItem>
-                )}
+    <form onSubmit={handleSubmit}>
+      <Card>
+        <CardHeader>
+          <CardTitle>Post a New Job</CardTitle>
+          <CardDescription>
+            Fill in the details below to find the perfect freelancer for your
+            project.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-2">
+            <Label htmlFor="title">Job Title</Label>
+            <Input
+              id="title"
+              placeholder="e.g., 'Experienced React Developer'"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required
             />
-          {jobType === 'local' && (
-            <FormField
-                control={form.control}
-                name="location"
-                render={({ field }) => (
-                <FormItem>
-                    <FormLabel>Job Location</FormLabel>
-                    <FormControl>
-                    <Input placeholder="e.g., Utawala, Nairobi" {...field} />
-                    </FormControl>
-                    <FormDescription>Required for local jobs.</FormDescription>
-                    <FormMessage />
-                </FormItem>
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="description">Description</Label>
+            <div className="relative">
+              <Textarea
+                id="description"
+                placeholder="Describe the job requirements, responsibilities, and qualifications."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={6}
+                required
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="absolute bottom-2 right-2"
+                onClick={handleGenerateWithAI}
+                disabled={isAiLoading}
+              >
+                {isAiLoading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Sparkles className="mr-2 h-4 w-4" />
                 )}
-            />
-          )}
-          <FormField
-            control={form.control}
-            name="skills"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Required Skills</FormLabel>
-                <FormControl>
-                  <Input 
-                    placeholder="e.g., React, Next.js, Plumbing" 
-                    value={Array.isArray(field.value) ? field.value.join(', ') : field.value}
-                    onChange={(e) => field.onChange(e.target.value.split(',').map(s => s.trim()).filter(Boolean))}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
+                Generate with AI
+              </Button>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="budget">Budget ($)</Label>
+              <Input
+                id="budget"
+                type="number"
+                placeholder="e.g., 1500"
+                value={budget}
+                onChange={(e) => setBudget(e.target.value)}
+                required
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="job-type">Job Type</Label>
+              <Select onValueChange={setJobType} value={jobType} required>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select job type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Full-time">Full-time</SelectItem>
+                  <SelectItem value="Part-time">Part-time</SelectItem>
+                  <SelectItem value="Freelance">Freelance</SelectItem>
+                  <SelectItem value="Contract">Contract</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="category">Job Category</Label>
+            <Select onValueChange={setCategory} value={category} required>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a category" />
+              </SelectTrigger>
+              <SelectContent>
+                {jobCategories.map((cat: { id: string; name: string }) => (
+                  <SelectItem key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+        <CardFooter>
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? (
+              <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Posting...</>
+            ) : (
+              "Post Job"
             )}
-          />
-          <FormField
-            control={form.control}
-            name="experience"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Experience Level</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select experience level" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="Entry-level">Entry-level</SelectItem>
-                    <SelectItem value="Mid-level">Mid-level</SelectItem>
-                    <SelectItem value="Senior-level">Senior-level</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="category"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Job Category</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a category" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {jobCategories.map((cat) => (
-                      <SelectItem key={cat.id} value={cat.id}>
-                        {cat.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-           <FormField
-            control={form.control}
-            name="budget"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Budget (KES)</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="e.g., 50000" 
-                    {...field}
-                    value={field.value === null ? '' : field.value}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      field.onChange(value === '' ? null : Number(value));
-                    }}
-                  />
-                </FormControl>
-                <FormDescription>Optional. Estimated budget for the job.</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="deadline"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Application Deadline</FormLabel>
-                <FormControl>
-                  <Input type="date" {...field} />
-                </FormControl>
-                <FormDescription>Optional. Format: YYYY-MM-DD</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <AIGenerateButton />
-
-        <div className="space-y-4 pt-4 border-t">
-          <h3 className="text-lg font-medium font-headline">Generated Job Post</h3>
-           <FormField
-            control={form.control}
-            name="title"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Job Title</FormLabel>
-                <FormControl>
-                  <Input placeholder="AI-generated title will appear here" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-           <FormField
-            control={form.control}
-            name="description"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Job Description</FormLabel>
-                <FormControl>
-                  <Textarea placeholder="AI-generated description will appear here" {...field} rows={10} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-        
-        <div className="flex justify-end">
-            <PostJobSubmitButton />
-        </div>
-      </form>
-    </Form>
+          </Button>
+        </CardFooter>
+      </Card>
+    </form>
   );
 }

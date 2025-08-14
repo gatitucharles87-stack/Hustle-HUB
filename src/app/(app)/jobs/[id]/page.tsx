@@ -9,7 +9,7 @@ import { Briefcase, MapPin, DollarSign, Clock, CalendarDays, BarChart2 } from "l
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { ApplyJobDialog } from "@/components/apply-job-dialog";
-import api from "@/lib/api";
+import * as api from "@/lib/api";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface JobDetails {
@@ -45,7 +45,7 @@ export default function JobDetailsPage() {
     const fetchJobDetails = async () => {
       setLoading(true);
       try {
-        const response = await api.get(`/jobs/${jobId}/`);
+        const response = await api.getJobById(jobId);
         setJob(response.data);
       } catch (error) {
         console.error("Failed to fetch job details", error);
@@ -168,11 +168,14 @@ export default function JobDetailsPage() {
         </CardFooter>
       </Card>
       {job && (
-        <ApplyJobDialog
-          jobId={job.id}
-          isOpen={isApplyModalOpen}
-          onClose={() => setIsApplyModalOpen(false)}
-        />
+       <ApplyJobDialog
+       jobId={job.id}
+       isOpen={isApplyModalOpen}
+       onOpenChange={setIsApplyModalOpen}
+       onApplicationSubmit={() => {
+         // you can add a toast notification here
+       }}
+     />
       )}
     </div>
   );

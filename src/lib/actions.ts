@@ -9,7 +9,7 @@ import {
   type GenerateBarterPostOutput,
 } from '@/ai/flows/generate-barter-post';
 import { z } from 'zod';
-import api from '@/lib/api'; // Assuming api client can be used server-side
+import * as api from '@/lib/api'; // Assuming api client can be used server-side
 
 const barterPostFormSchema = z.object({
   skillsToOffer: z.string().min(1, 'Skills to offer are required.'),
@@ -171,7 +171,7 @@ export async function postJobAction(
   const { title, description, skills, experience, category, jobType, location, budget, deadline } = validatedFields.data;
 
   try {
-    const response = await api.post('/jobs/', {
+    const response = await api.postJob({
       title,
       description,
       skills: skills.split(',').map(s => s.trim()), // Convert comma-separated string to array

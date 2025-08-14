@@ -31,7 +31,11 @@ import {
   updateMockJob,
   updateMockSkillBarterPost,
   deleteMockJob,
-  deleteMockSkillBarterPost
+  deleteMockSkillBarterPost,
+  getMockCounties,
+  getMockSubCounties,
+  getMockWards,
+  getMockNeighborhoods
 } from "./mockApi";
 
 const _backendApi = axios.create({
@@ -172,11 +176,11 @@ export const getJobCategories = async () => {
   return _backendApi.get("/job-categories/");
 };
 
-export const getJobs = async () => {
+export const getJobs = async (params: any = {}) => {
   if (shouldUseMock("/jobs/")) {
     return getMockJobs();
   }
-  return _backendApi.get("/jobs/");
+  return _backendApi.get("/jobs/", { params });
 };
 
 export const getJobById = async (id: string) => {
@@ -256,18 +260,18 @@ export const markNotificationAsRead = async (id: string) => {
   return _backendApi.post(`/notifications/${id}/mark_read/`);
 };
 
-export const getFreelancers = async () => {
-  if (shouldUseMock("/freelancers/")) {
-    return getMockFreelancers();
+export const getUsers = async (params: any = {}) => {
+  if (shouldUseMock("/users/")) {
+    return getMockFreelancers(); 
   }
-  return _backendApi.get("/freelancers/");
+  return _backendApi.get("/users/", { params });
 };
 
-export const getFreelancerById = async (id: string) => {
-  if (shouldUseMock(`/freelancers/${id}/`)) {
-    return getMockFreelancerById(id);
+export const getUserById = async (id: string) => {
+  if (shouldUseMock(`/users/${id}/`)) {
+    return getMockFreelancerById(id); 
   }
-  return _backendApi.get(`/freelancers/${id}/`);
+  return _backendApi.get(`/users/${id}/`);
 };
 
 export const getUserProfile = async () => {
@@ -279,6 +283,9 @@ export const updateUserProfile = async (profileData: any) => {
 };
 
 export const getDashboardStats = async (userType: 'freelancer' | 'employer') => {
+  if (shouldUseMock(`/dashboard/${userType}/`)) {
+    return getMockDashboardStats(userType);
+  }
   return _backendApi.get(`/dashboard/${userType}/`);
 };
 
@@ -369,4 +376,31 @@ export const deleteSkillBarterPost = async (postId: string) => {
     return deleteMockSkillBarterPost(postId);
   }
   return _backendApi.delete(`/skill-barter-posts/${postId}/`);
+};
+export const getCounties = async () => {
+    if (shouldUseMock('/locations/counties/')) {
+        return getMockCounties();
+    }
+    return _backendApi.get('/locations/counties/');
+};
+
+export const getSubCounties = async (countyId: string) => {
+    if (shouldUseMock(`/locations/sub-counties/?county_id=${countyId}`)) {
+        return getMockSubCounties(countyId);
+    }
+    return _backendApi.get(`/locations/sub-counties/?county_id=${countyId}`);
+};
+
+export const getWards = async (subCountyId: string) => {
+    if (shouldUseMock(`/locations/wards/?sub_county_id=${subCountyId}`)) {
+        return getMockWards(subCountyId);
+    }
+    return _backendApi.get(`/locations/wards/?sub_county_id=${subCountyId}`);
+};
+
+export const getNeighborhoods = async (wardId: string) => {
+  if (shouldUseMock(`/locations/neighborhoods/?ward_id=${wardId}`)) {
+    return getMockNeighborhoods(wardId);
+  }
+  return _backendApi.get(`/locations/neighborhoods/?ward_id=${wardId}`);
 };

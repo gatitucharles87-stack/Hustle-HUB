@@ -15,7 +15,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { useUser } from "@/hooks/use-user";
 import { useToast } from "@/hooks/use-toast";
-import api from "@/lib/api";
+import * as api from "@/lib/api";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface LoyaltyLog {
@@ -45,12 +45,14 @@ export default function LoyaltyPage() {
         if (!user) return;
         setLoadingData(true);
         try {
-            const [loyaltyResponse, referralsResponse] = await Promise.all([
-                api.get('/loyalty-point-logs/'),
-                api.get('/referrals/')
-            ]);
+            // TODO: The /referrals/ endpoint is not yet available in the api.ts file.
+            // const [loyaltyResponse, referralsResponse] = await Promise.all([
+            //     api.getLoyaltyPoints(),
+            //     api.getReferrals()
+            // ]);
+            const loyaltyResponse = await api.getLoyaltyPoints();
             setLoyaltyHistory(loyaltyResponse.data);
-            setReferrals(referralsResponse.data);
+            // setReferrals(referralsResponse.data);
         } catch (error) {
             console.error("Failed to fetch loyalty data:", error);
             toast({
@@ -187,4 +189,3 @@ export default function LoyaltyPage() {
     </div>
   );
 }
-

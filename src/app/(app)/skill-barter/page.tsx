@@ -8,7 +8,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Repeat, Search, Wand2 } from "lucide-react";
 import { BarterPostDialog } from "@/components/barter-post-dialog";
 import { MakeOfferDialog } from "@/components/make-offer-dialog";
-import api from "@/lib/api";
+import * as api from "@/lib/api";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 
@@ -35,9 +35,7 @@ export default function SkillBarterPage() {
   const fetchBarterPosts = async () => {
     setLoading(true);
     try {
-      const response = await api.get("/skill-barter-posts/", {
-        params: { search: searchTerm },
-      });
+      const response = await api.getSkillBarterPosts();
       setBarterListings(response.data);
     } catch (error) {
       console.error("Failed to fetch barter posts", error);
@@ -140,8 +138,8 @@ export default function SkillBarterPage() {
         <MakeOfferDialog
           postId={selectedPostId}
           isOpen={isOfferModalOpen}
-          onClose={() => setIsOfferModalOpen(false)}
-          onOfferSubmitted={handleOfferSubmitted} // Added the missing prop
+          onOpenChange={() => setIsOfferModalOpen(false)}
+          onOfferMade={handleOfferSubmitted} 
         />
       )}
     </div>

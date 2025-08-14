@@ -8,7 +8,7 @@ import Link from "next/link";
 import { useState, useEffect, useCallback } from "react";
 import { MakeOfferDialog } from "@/components/make-offer-dialog";
 import { useToast } from "@/hooks/use-toast";
-import api from "@/lib/api";
+import * as api from "@/lib/api";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface BarterPost {
@@ -36,7 +36,7 @@ export default function EmployerSkillBarterPage() {
     const fetchBarterPosts = useCallback(async () => {
         setLoading(true);
         try {
-            const response = await api.get('/skill-barter-posts/');
+            const response = await api.getSkillBarterPosts();
             setPosts(response.data);
         } catch (error) {
             console.error("Failed to fetch barter posts:", error);
@@ -145,8 +145,8 @@ export default function EmployerSkillBarterPage() {
                 <MakeOfferDialog
                     postId={selectedPostId}
                     isOpen={isMakeOfferDialogOpen}
-                    onClose={handleCloseMakeOfferDialog}
-                    onOfferSubmitted={handleOfferSubmitted} // Pass callback to refresh posts
+                    onOpenChange={setIsMakeOfferDialogOpen}
+                    onOfferMade={handleOfferSubmitted}
                 />
             )}
         </div>

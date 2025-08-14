@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/hooks/use-user";
-import api from "@/lib/api";
+import * as api from "@/lib/api";
 
 interface UserProfile {
     id: string;
@@ -51,7 +51,9 @@ export default function ReferralsPage() {
             if (!user) return;
             setLoadingReferrals(true);
             try {
-                const response = await api.get<ReferralEntry[]>('/referrals/');
+                // TODO: This endpoint is not yet available in api.ts
+                // const response = await api.getReferrals();
+                const response = { data: [] }; // Mock response
                 setReferralHistory(response.data);
             } catch (error) {
                 console.error("Failed to fetch referral history:", error);

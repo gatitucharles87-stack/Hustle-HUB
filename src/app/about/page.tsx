@@ -1,68 +1,88 @@
-
 "use client";
-
-import { PublicHeader } from "@/components/layout/public-header";
-import Head from 'next/head';
+import { AboutUsContent } from "@/components/about-us-content";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+import * as api from "@/lib/api";
 import { useEffect, useState } from "react";
-import api from "@/lib/api";
-import { Skeleton } from "@/components/ui/skeleton";
 
-interface AboutUsData {
-  title: string;
-  content: string;
-  image_url: string;
+interface Review {
+  id: string;
+  reviewer: {
+    username: string;
+    profile_picture_url: string;
+  };
+  rating: number;
+  comment: string;
 }
 
-export default function PublicAboutPage() {
-    const [aboutData, setAboutData] = useState<AboutUsData | null>(null);
-    const [loading, setLoading] = useState(true);
+export default function AboutPage() {
+  const [reviews, setReviews] = useState<Review[]>([]);
 
-    useEffect(() => {
-        const fetchAboutData = async () => {
-            try {
-                const response = await api.get("/about-us/");
-                setAboutData(response.data);
-            } catch (error) {
-                console.error("Failed to fetch about us data", error);
-            } finally {
-                setLoading(false);
-            }
-        };
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        const response = await api.getReviewsByProfileId("all"); // Assuming 'all' fetches all reviews
+        setReviews(response.data);
+      } catch (error) {
+        console.error("Failed to fetch reviews", error);
+      }
+    };
+    fetchReviews();
+  }, []);
 
-        fetchAboutData();
-    }, []);
-
-    return (
-        <>
-            <Head>
-                <title>{aboutData?.title || 'About HustleHub - Connect Talent & Opportunity'}</title>
-                <meta name="description" content={aboutData?.content.substring(0, 160) || "HustleHub is a revolutionary platform connecting skilled freelancers with innovative employers. Learn about our mission, vision, and impact."} />
-                <meta property="og:title" content={aboutData?.title || 'About HustleHub'} />
-                <meta property="og:description" content={aboutData?.content.substring(0, 160) || "HustleHub is a revolutionary platform connecting skilled freelancers with innovative employers. Learn about our mission, vision, and impact."} />
-                <meta property="og:image" content={aboutData?.image_url || "data:image/svg+xml;base64,PHN2ZyB2aWR0aD0iMTIwMCIgaGVpZ2h0PSI2MDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHrectCB3aWR0aD0iMTIwMCIgaGVpZ2h0PSI2MDAiIGZpbGw9IiMwMDdCRjAiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjUwIiBmaWxsPSIjRkZGRkZGIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iMC4zNWVtIj5Ib2xkaW5nIFBsYWNlaG9sZGVyPC90ZXh0Pjwvc3ZnPg=="} />
-                <meta property="og:url" content="https://www.yourhustlehub.com/about" />
-                <meta name="twitter:card" content="summary_large_image" />
-            </Head>
-            <PublicHeader />
-            <div className="container mx-auto py-12">
-                {loading ? (
-                    <div className="space-y-4">
-                        <Skeleton className="h-8 w-1/2" />
-                        <Skeleton className="h-64 w-full" />
-                        <Skeleton className="h-4 w-full" />
-                        <Skeleton className="h-4 w-full" />
-                        <Skeleton className="h-4 w-3/4" />
-                    </div>
-                ) : aboutData ? (
-                    <div className="prose lg:prose-xl dark:prose-invert">
-                        <h1>{aboutData.title}</h1>
-                        <img src={aboutData.image_url} alt={aboutData.title} className="w-full h-auto rounded-lg" />
-                        <p>{aboutData.content}</p>
-                    </div>
-                ) : (
-                    <div>Failed to load content.</div>
-                )}
-            </div>
-        </>
-    )
+  return (
+    <div className="container mx-auto py-8">
+      <AboutUsContent />
+      <div className="mt-12">
+        <h2 className="text-3xl font-bold text-center mb-8">
+          What Our Users Say
+        </h2>
+        <Carousel className="w-full max-w-4xl mx-auto">
+          <CarouselContent>
+            {reviews.map((review) => (
+              <CarouselItem key={review.id} className="md:basis-1/2 lg:basis-1/3">
+                <div className="p-1">
+                  <Card>
+                    <CardContent className="flex flex-col items-center justify-center p-6">
+                      <img
+                        src={review.reviewer.profile_picture_url}
+                        alt={review.reviewer.username}
+                        className="w-24 h-24 rounded-full mb-4"
+                      />
+                      <h3 className="text-xl font-semibold">{review.reviewer.username}</h3>
+                      <div className="flex items-center mt-2">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <svg
+                            key={i}
+                            className={`w-5 h-5 ${
+                              i < review.rating ? "text-yellow-400" : "text-gray-300"
+                            }`}
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
+                          </svg>
+                        ))}
+                      </div>
+                      <p className="text-center text-gray-600 mt-4">
+                        "{review.comment}"
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselPrevious />
+          <CarouselNext />
+        </Carousel>
+      </div>
+    </div>
+  );
 }

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from 'next/link';
 import { useUser } from "@/hooks/use-user";
-import api, { getRecommendedJobs, getJobCategories } from "@/lib/api"; // Corrected api import, and added named imports
+import * as api from "@/lib/api"; // Corrected api import, and added named imports
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -54,8 +54,8 @@ export default function RecommendedJobsPage() {
         setError(null);
         try {
           const [jobsResponse, categoriesResponse] = await Promise.all([
-            getRecommendedJobs(), // Use the imported function
-            getJobCategories() // Use the imported function
+            api.getRecommendedJobs(), // Use the imported function
+            api.getJobCategories() // Use the imported function
           ]);
           setAllJobs(jobsResponse.data); // Extract data from AxiosResponse
           setFilteredJobs(jobsResponse.data); // Initially display all jobs

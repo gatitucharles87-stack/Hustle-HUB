@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Briefcase, MapPin, Search } from "lucide-react";
 import { LocationSelector } from "@/components/location-selector";
 import Link from "next/link";
-import api from "@/lib/api";
+import * as api from "@/lib/api";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface Job {
@@ -37,16 +37,16 @@ export default function JobsPage() {
     search: "",
     category: "",
     county: "",
-    subCounty: "", // Changed from sub_county
-    area: "",       // Changed from neighborhood and ward
+    subCounty: "", 
+    area: "",       
   });
 
   useEffect(() => {
     const fetchJobsAndCategories = async () => {
       try {
         const [jobsResponse, categoriesResponse] = await Promise.all([
-          api.get("/jobs/"),
-          api.get("/job-categories/"),
+          api.getJobs(),
+          api.getJobCategories(),
         ]);
         setJobs(jobsResponse.data);
         setCategories(categoriesResponse.data);
@@ -64,20 +64,19 @@ export default function JobsPage() {
     setFilters((prev) => ({ ...prev, [name]: value === "all" ? "" : value }));
   };
 
-  const handleLocationChange = (countyId: string, subCountyId: string, wardId: string, neighborhoodId: string) => {
+  const handleLocationChange = (location: { county: string; subCounty: string; ward: string; neighborhood: string; }) => {
     setFilters((prev) => ({
       ...prev,
-      county: countyId,
-      subCounty: subCountyId, // Mapped to subCounty
-      area: neighborhoodId,    // Mapped neighborhoodId to area
-      // ward is not directly used as a filter for /jobs endpoint based on API_ENDPOINTS.md
+      county: location.county,
+      subCounty: location.subCounty,
+      area: location.neighborhood,
     }));
   };
 
   const handleSearch = async () => {
     setLoading(true);
     try {
-      const response = await api.get("/jobs/", { params: filters });
+      const response = await api.getJobs({ params: filters });
       setJobs(response.data);
     } catch (error) {
       console.error("Failed to search jobs", error);

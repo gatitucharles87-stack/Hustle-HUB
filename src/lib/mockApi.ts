@@ -228,7 +228,29 @@ const mockEmployerApplications: any[] = [
     applied_date: "2023-10-27T09:00:00Z",
   },
 ];
+const mockCounties = [
+    { id: '1', name: 'Nairobi' },
+    { id: '2', name: 'Mombasa' },
+];
 
+const mockSubCounties = [
+    { id: '1', name: 'Westlands', county_id: '1' },
+    { id: '2', name: 'Langata', county_id: '1' },
+    { id: '3', name: 'Changamwe', county_id: '2' },
+];
+
+const mockWards = [
+    { id: '1', name: 'Kitisuru', sub_county_id: '1' },
+    { id: '2', name: 'Karen', sub_county_id: '2' },
+    { id: '3', name: 'Port Reitz', sub_county_id: '3' },
+];
+
+const mockNeighborhoods = [
+  { id: '1', name: 'Parklands', ward_id: '1' },
+  { id: '2', name: 'Lavington', ward_id: '1' },
+  { id: '3', name: 'Woodley', ward_id: '2' },
+  { id: '4', name: 'New Nyali', ward_id: '3' },
+];
 
 // --- Mock API Functions ---
 
@@ -519,4 +541,22 @@ export const deleteMockSkillBarterPost = async (postId: string) => {
     return Promise.resolve({ status: 204 });
   }
   return Promise.reject({ response: { status: 404, data: { detail: "Skill barter post not found" } } });
+};
+export const getMockCounties = async () => {
+    return Promise.resolve({ data: mockCounties });
+};
+
+export const getMockSubCounties = async (countyId: string) => {
+    const filteredSubCounties = mockSubCounties.filter(sc => sc.county_id === countyId);
+    return Promise.resolve({ data: filteredSubCounties });
+};
+
+export const getMockWards = async (subCountyId: string) => {
+    const filteredWards = mockWards.filter(w => w.sub_county_id === subCountyId);
+    return Promise.resolve({ data: filteredWards });
+};
+
+export const getMockNeighborhoods = async (wardId: string) => {
+    const filteredNeighborhoods = mockNeighborhoods.filter(n => n.ward_id === wardId);
+    return Promise.resolve({ data: filteredNeighborhoods });
 };

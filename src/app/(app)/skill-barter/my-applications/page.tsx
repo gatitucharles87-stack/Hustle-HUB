@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link'; 
 import { useRouter } from 'next/navigation';
-import api from '@/lib/api';
+import * as api from '@/lib/api';
 import { useUser } from '@/hooks/use-user';
 import { Skeleton } from '@/components/ui/skeleton';
 

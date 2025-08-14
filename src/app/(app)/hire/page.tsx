@@ -11,7 +11,7 @@ import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
 import { LocationSelector } from '@/components/location-selector';
 import { Label } from '@/components/ui/label';
-import api from "@/lib/api"; // Import API client
+import * as api from "@/lib/api"; // Import API client
 import { useToast } from "@/hooks/use-toast";
 
 interface Freelancer {
@@ -67,7 +67,7 @@ export default function HireFreelancersPage() {
         params.append('neighborhood_tag_id', selectedNeighborhoodId);
       }
 
-      const response = await api.get(`/users/?${params.toString()}`);
+      const response = await api.getUsers(`?${params.toString()}`);
       setFreelancers(response.data);
     } catch (error) {
       console.error("Failed to fetch freelancers:", error);
@@ -84,7 +84,7 @@ export default function HireFreelancersPage() {
 
   const fetchJobCategories = useCallback(async () => {
     try {
-      const response = await api.get('/job-categories/');
+      const response = await api.getJobCategories();
       setJobCategories(response.data);
     } catch (error) {
       console.error("Failed to fetch job categories:", error);
@@ -104,11 +104,11 @@ export default function HireFreelancersPage() {
     fetchFreelancers();
   }, [fetchFreelancers]);
 
-  const handleLocationChange = (countyId: string, subCountyId: string, wardId: string, neighborhoodId: string) => {
-    setSelectedCountyId(countyId);
-    setSelectedSubCountyId(subCountyId);
-    setSelectedWardId(wardId);
-    setSelectedNeighborhoodId(neighborhoodId);
+  const handleLocationChange = (location: { county: string; subCounty: string; ward: string; neighborhood: string; }) => {
+    setSelectedCountyId(location.county);
+    setSelectedSubCountyId(location.subCounty);
+    setSelectedWardId(location.ward);
+    setSelectedNeighborhoodId(location.neighborhood);
   };
 
   return (

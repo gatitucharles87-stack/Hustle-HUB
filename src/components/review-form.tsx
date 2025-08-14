@@ -7,12 +7,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Star, Upload, X, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import api from "@/lib/api"; // Import the centralized API client
+import * as api from "@/lib/api"; 
 
 interface ReviewFormProps {
   jobId: string;
   revieweeId: string;
-  revieweeType: 'freelancer' | 'employer'; // Indicates if the review is for a freelancer or an employer
+  revieweeType: 'freelancer' | 'employer'; 
   onReviewSubmitted: () => void;
 }
 
@@ -52,33 +52,26 @@ export function ReviewForm({
     formData.append("rating", rating.toString());
     formData.append("comment", comment);
     
-    // Append reviewee_id and reviewee_type based on the prop
     formData.append("reviewee_id", revieweeId);
     formData.append("reviewee_type", revieweeType);
 
     images.forEach((file, index) => {
-      formData.append(`images[${index}]`, file); // Assuming backend expects an array of files
+      formData.append(`images[${index}]`, file);
     });
 
     try {
-      const response = await api.post("/reviews/", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data", // Required for file uploads
-        },
-      });
+      const response = await api.postReview(formData);
 
-      if (response.status === 201) { // Assuming 201 Created for successful review
+      if (response.status === 201) {
         toast({
           title: "Review Submitted!",
           description: "Thank you for your feedback.",
         });
-        // Reset form fields
         setRating(0);
         setComment("");
         setImages([]);
         onReviewSubmitted();
       } else {
-        // This block might be redundant if Axios handles non-2xx as errors
         const errorData = response.data;
         toast({
           title: "Submission Failed",

@@ -8,7 +8,7 @@ import { Repeat, User2, MessageSquare } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { MakeOfferDialog } from "@/components/make-offer-dialog";
-import api from "@/lib/api";
+import * as api from "@/lib/api";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -38,7 +38,7 @@ export default function SkillBarterPostDetailsPage() {
   const fetchPostDetails = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await api.get(`/skill-barter-posts/${postId}/`);
+      const response = await api.getSkillBarterPostById(postId);
       setPost(response.data);
     } catch (error) {
       console.error("Failed to fetch skill barter post details", error);
@@ -152,8 +152,8 @@ export default function SkillBarterPostDetailsPage() {
         <MakeOfferDialog
           postId={post.id}
           isOpen={isOfferModalOpen}
-          onClose={() => setIsOfferModalOpen(false)}
-          onOfferSubmitted={handleOfferSubmitted} // Added the missing prop
+          onOpenChange={setIsOfferModalOpen}
+          onOfferMade={handleOfferSubmitted}
         />
       )}
     </div>
