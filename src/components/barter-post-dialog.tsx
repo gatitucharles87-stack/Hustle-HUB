@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, ReactNode, isValidElement, cloneElement } from "react"; // Import isValidElement and cloneElement
+import { useState, ReactNode, isValidElement, cloneElement } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -15,11 +15,11 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, Sparkles } from "lucide-react";
 import * as api from "@/lib/api";
 
 interface BarterPostDialogProps {
-  children?: ReactNode; // Make children optional
+  children?: ReactNode;
   onPostCreated: () => void;
 }
 
@@ -30,7 +30,39 @@ export function BarterPostDialog({ children, onPostCreated }: BarterPostDialogPr
   const [skillsOffered, setSkillsOffered] = useState("");
   const [skillsWanted, setSkillsWanted] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isAiLoading, setIsAiLoading] = useState(false); // New AI loading state
   const { toast } = useToast();
+
+  const handleGenerateWithAI = async () => {
+    if (!title) {
+      toast({
+        title: "Title is required for AI generation",
+        variant: "destructive",
+      });
+      return;
+    }
+    setIsAiLoading(true);
+    try {
+      const response = await api.generateBarterPostAI(title);
+      const aiData = response.data; // Assuming AI returns { description, skills_offered, skills_wanted }
+      setDescription(aiData.description || "");
+      setSkillsOffered(aiData.skills_offered ? aiData.skills_offered.join(', ') : "");
+      setSkillsWanted(aiData.skills_wanted ? aiData.skills_wanted.join(', ') : "");
+      toast({
+        title: "AI Generated Content",
+        description: "AI has generated content for your barter post.",
+      });
+    } catch (error) {
+      console.error("AI generation failed", error);
+      toast({
+        title: "AI Generation Failed",
+        description: "Could not generate content with AI. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAiLoading(false);
+    }
+  };
 
   const handleSubmit = async () => {
     if (!title || !description || !skillsOffered || !skillsWanted) {
@@ -89,7 +121,7 @@ export function BarterPostDialog({ children, onPostCreated }: BarterPostDialogPr
         {isValidElement(children) ? (
           cloneElement(children)
         ) : (
-          <Button>Open Barter Post Dialog</Button> // Fallback button
+          <Button>Open Barter Post Dialog</Button>
         )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
@@ -107,19 +139,36 @@ export function BarterPostDialog({ children, onPostCreated }: BarterPostDialogPr
               placeholder="e.g., 'Logo Design for Spanish Tutoring'"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              disabled={isLoading}
+              disabled={isLoading || isAiLoading}
             />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              placeholder="Describe your offer and what you're looking for in detail."
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={4}
-              disabled={isLoading}
-            />
+            <div className="relative">
+              <Textarea
+                id="description"
+                placeholder="Describe your offer and what you're looking for in detail."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={4}
+                disabled={isLoading || isAiLoading}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="absolute bottom-2 right-2"
+                onClick={handleGenerateWithAI}
+                disabled={isAiLoading || !title}
+              >
+                {isAiLoading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Sparkles className="mr-2 h-4 w-4" />
+                )}
+                Generate with AI
+              </Button>
+            </div>
           </div>
           <div className="grid gap-2">
             <Label htmlFor="skills-offered">Skills You Offer</Label>
@@ -128,7 +177,7 @@ export function BarterPostDialog({ children, onPostCreated }: BarterPostDialogPr
               placeholder="e.g., Graphic Design, Branding"
               value={skillsOffered}
               onChange={(e) => setSkillsOffered(e.target.value)}
-              disabled={isLoading}
+              disabled={isLoading || isAiLoading}
             />
             <p className="text-xs text-muted-foreground">
               Separate skills with a comma.
@@ -141,7 +190,7 @@ export function BarterPostDialog({ children, onPostCreated }: BarterPostDialogPr
               placeholder="e.g., Spanish, Web Development"
               value={skillsWanted}
               onChange={(e) => setSkillsWanted(e.target.value)}
-              disabled={isLoading}
+              disabled={isLoading || isAiLoading}
             />
             <p className="text-xs text-muted-foreground">
               Separate skills with a comma.
@@ -149,10 +198,10 @@ export function BarterPostDialog({ children, onPostCreated }: BarterPostDialogPr
           </div>
         </div>
         <DialogFooter>
-          <Button variant="ghost" onClick={() => setIsOpen(false)} disabled={isLoading}>
+          <Button variant="ghost" onClick={() => setIsOpen(false)} disabled={isLoading || isAiLoading}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit} disabled={isLoading}>
+          <Button onClick={handleSubmit} disabled={isLoading || isAiLoading}>
             {isLoading ? (
               <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating Post...</>
             ) : (

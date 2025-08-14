@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -60,20 +60,20 @@ export default function JobsPage() {
     fetchJobsAndCategories();
   }, []);
 
-  const handleFilterChange = (name: string, value: string) => {
+  const handleFilterChange = useCallback((name: string, value: string) => {
     setFilters((prev) => ({ ...prev, [name]: value === "all" ? "" : value }));
-  };
+  }, []);
 
-  const handleLocationChange = (location: { county: string; subCounty: string; ward: string; neighborhood: string; }) => {
+  const handleLocationChange = useCallback((location: { county: string; subCounty: string; ward: string; neighborhood: string; }) => {
     setFilters((prev) => ({
       ...prev,
       county: location.county,
       subCounty: location.subCounty,
       area: location.neighborhood,
     }));
-  };
+  }, []);
 
-  const handleSearch = async () => {
+  const handleSearch = useCallback(async () => {
     setLoading(true);
     try {
       const response = await api.getJobs({ params: filters });
@@ -83,7 +83,7 @@ export default function JobsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters]);
 
   return (
     <div className="flex flex-col gap-8">

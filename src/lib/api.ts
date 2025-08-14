@@ -140,6 +140,8 @@ const integratedPaths = [
   "/users/password/reset/",
   "/users/set_password/",
   "/users/",
+  "/ai/generate-job-post/",
+  "/ai/generate-barter-post/", 
 ];
 
 const shouldUseMock = (url: string) => {
@@ -294,7 +296,13 @@ export const getApplicantsForJob = async (jobId: string) => {
 };
 
 export const generateJobPostAI = async (prompt: string) => {
-  return generateMockJobPostAI(prompt);
+  // This will hit your actual backend endpoint
+  return _backendApi.post("/ai/generate-job-post/", { prompt });
+};
+
+export const generateBarterPostAI = async (prompt: string) => {
+  // This will hit your actual backend endpoint
+  return _backendApi.post("/ai/generate-barter-post/", { prompt });
 };
 
 export const getLoyaltyPoints = async () => {
