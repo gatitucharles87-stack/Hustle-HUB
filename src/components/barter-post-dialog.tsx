@@ -32,7 +32,7 @@ export function BarterPostDialog({ children, onPostCreated }: BarterPostDialogPr
   const [isLoading, setIsLoading] = useState(false);
   const [isAiLoading, setIsAiLoading] = useState(false);
   
-  // New state for AI generated content display
+  // State for AI generated content display (re-introduced)
   const [generatedTitle, setGeneratedTitle] = useState("");
   const [generatedDescription, setGeneratedDescription] = useState("");
   const [generatedSkillsOffered, setGeneratedSkillsOffered] = useState("");
@@ -41,29 +41,23 @@ export function BarterPostDialog({ children, onPostCreated }: BarterPostDialogPr
   const { toast } = useToast();
 
   const handleGenerateWithAI = async () => {
-    // Combine relevant fields into a prompt for AI
-    const prompt = `Generate a skill barter post. Title suggestion: ${title || ''}. Description: ${description || ''}. Skills I can offer: ${skillsOffered || ''}. Skills I want in return: ${skillsWanted || ''}.`;
+    // Use current form values as a prompt for AI
+    const prompt = `Generate a skill barter post based on the following: Title: ${title || ''}, Skills I can offer: ${skillsOffered || ''}, Skills I want in return: ${skillsWanted || ''}. Provide a compelling title, a detailed description, comma-separated skills offered, and comma-separated skills wanted.`;
 
     setIsAiLoading(true);
     try {
       const response = await api.generateBarterPostAI(prompt);
       const aiData = response.data; // Assuming AI returns { title, description, skills_offered, skills_wanted }
       
-      // Update editable form fields with AI generated content
-      setTitle(aiData.title || title);
-      setDescription(aiData.description || description);
-      setSkillsOffered(aiData.skills_offered ? aiData.skills_offered.join(', ') : skillsOffered);
-      setSkillsWanted(aiData.skills_wanted ? aiData.skills_wanted.join(', ') : skillsWanted);
-
-      // Update generated content for display
+      // Populate generated content for display
       setGeneratedTitle(aiData.title || "");
       setGeneratedDescription(aiData.description || "");
-      setGeneratedSkillsOffered(aiData.skills_offered ? aiData.skills_offered.join(', ') : "");
-      setGeneratedSkillsWanted(aiData.skills_wanted ? aiData.skills_wanted.join(', ') : "");
+      setGeneratedSkillsOffered(aiData.skills_offered ? (Array.isArray(aiData.skills_offered) ? aiData.skills_offered.join(', ') : aiData.skills_offered) : "");
+      setGeneratedSkillsWanted(aiData.skills_wanted ? (Array.isArray(aiData.skills_wanted) ? aiData.skills_wanted.join(', ') : aiData.skills_wanted) : "");
 
       toast({
         title: "AI Generated Content",
-        description: "AI has generated content for your barter post.",
+        description: "AI has generated content for your barter post. Review it below.",
       });
     } catch (error) {
       console.error("AI generation failed", error);
@@ -102,12 +96,12 @@ export function BarterPostDialog({ children, onPostCreated }: BarterPostDialogPr
         });
         onPostCreated();
         setIsOpen(false);
-        // Reset fields
+        // Reset all fields including generated ones
         setTitle("");
         setDescription("");
         setSkillsOffered("");
         setSkillsWanted("");
-        setGeneratedTitle(""); // Reset generated fields
+        setGeneratedTitle("");
         setGeneratedDescription("");
         setGeneratedSkillsOffered("");
         setGeneratedSkillsWanted("");
@@ -145,7 +139,7 @@ export function BarterPostDialog({ children, onPostCreated }: BarterPostDialogPr
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">Create a New Skill Barter Post</DialogTitle>
           <DialogDescription>
-            Offer your skills and find the expertise you need in return. Use our AI assistant to help you craft your post.
+            Fill in the details below. Our AI assistant can help you generate a compelling title, description, and skill lists.
           </DialogDescription>
         </DialogHeader>
         <div className="py-4 space-y-6">
@@ -201,11 +195,14 @@ export function BarterPostDialog({ children, onPostCreated }: BarterPostDialogPr
             />
           </div>
 
+          <p className="text-sm text-center text-muted-foreground mt-4">
+            Fill in some details, then click "Generate with AI" to get suggestions for all fields.
+          </p>
           <Button
             type="button"
-            className="w-full mt-4"
+            className="w-full"
             onClick={handleGenerateWithAI}
-            disabled={isAiLoading || !title} // Disable if no title for prompt
+            disabled={isAiLoading} 
           >
             {isAiLoading ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -217,9 +214,11 @@ export function BarterPostDialog({ children, onPostCreated }: BarterPostDialogPr
 
           {(generatedTitle || generatedDescription || generatedSkillsOffered || generatedSkillsWanted) && (
             <div className="space-y-4 pt-4 border-t border-dashed mt-6">
-              <h3 className="text-lg font-semibold">Generated Barter Post</h3>
+              <h3 className="text-lg font-semibold">Generated Barter Post Suggestions</h3>
+              <p className="text-sm text-muted-foreground mb-4">Review the AI-generated suggestions below. You can copy and paste them into the main form fields above, or modify them as needed.</p>
+
               <div className="grid gap-2">
-                <Label htmlFor="generated-title">Generated Title</Label>
+                <Label htmlFor="generated-title">Suggested Title</Label>
                 <Input
                   id="generated-title"
                   value={generatedTitle}
@@ -228,17 +227,7 @@ export function BarterPostDialog({ children, onPostCreated }: BarterPostDialogPr
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="generated-description">Generated Description</Label>
-                <Textarea
-                  id="generated-description"
-                  value={generatedDescription}
-                  readOnly
-                  rows={6}
-                  className="bg-muted/50 resize-none"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="generated-skills-offered">Generated Skills You Offer</Label>
+                <Label htmlFor="generated-skills-offered">Suggested Skills You Offer</Label>
                 <Input
                   id="generated-skills-offered"
                   value={generatedSkillsOffered}
@@ -247,12 +236,22 @@ export function BarterPostDialog({ children, onPostCreated }: BarterPostDialogPr
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="generated-skills-wanted">Generated Skills You Want</Label>
+                <Label htmlFor="generated-skills-wanted">Suggested Skills You Want</Label>
                 <Input
                   id="generated-skills-wanted"
                   value={generatedSkillsWanted}
                   readOnly
                   className="bg-muted/50"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="generated-description">Suggested Description</Label>
+                <Textarea
+                  id="generated-description"
+                  value={generatedDescription}
+                  readOnly
+                  rows={6}
+                  className="bg-muted/50 resize-none"
                 />
               </div>
             </div>
