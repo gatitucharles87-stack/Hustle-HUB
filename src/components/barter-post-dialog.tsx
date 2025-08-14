@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, ReactNode } from "react";
+import { useState, ReactNode, isValidElement, cloneElement } from "react"; // Import isValidElement and cloneElement
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -19,7 +19,7 @@ import { Loader2 } from "lucide-react";
 import * as api from "@/lib/api";
 
 interface BarterPostDialogProps {
-  children: ReactNode;
+  children?: ReactNode; // Make children optional
   onPostCreated: () => void;
 }
 
@@ -85,7 +85,13 @@ export function BarterPostDialog({ children, onPostCreated }: BarterPostDialogPr
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
+      <DialogTrigger asChild>
+        {isValidElement(children) ? (
+          cloneElement(children)
+        ) : (
+          <Button>Open Barter Post Dialog</Button> // Fallback button
+        )}
+      </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Create a New Skill Barter Post</DialogTitle>

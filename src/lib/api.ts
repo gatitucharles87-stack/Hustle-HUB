@@ -19,7 +19,6 @@ import {
   getMockFreelancers,
   getMockFreelancerById,
   getMockDashboardStats,
-  getMockApplicantsForJob,
   generateMockJobPostAI,
   getMockLoyaltyPoints,
   getMockBadges,
@@ -35,7 +34,9 @@ import {
   getMockCounties,
   getMockSubCounties,
   getMockWards,
-  getMockNeighborhoods
+  getMockNeighborhoods,
+  getMockReferrals,
+  getMockApplicantsForJob // Ensure this is imported if still used in the mockApi file
 } from "./mockApi";
 
 const _backendApi = axios.create({
@@ -139,7 +140,6 @@ const integratedPaths = [
   "/users/password/reset/",
   "/users/set_password/",
   "/users/",
-  "/dashboard/",
 ];
 
 const shouldUseMock = (url: string) => {
@@ -285,13 +285,12 @@ export const updateUserProfile = async (profileData: any) => {
 };
 
 export const getDashboardStats = async (userType: 'freelancer' | 'employer') => {
-  if (shouldUseMock(`/dashboard/${userType}/`)) {
-    return getMockDashboardStats(userType);
-  }
-  return _backendApi.get(`/dashboard/${userType}/`);
+  // Always hit the backend for dashboard stats
+  return _backendApi.get(`/dashboard-stats/?user_type=${userType}`);
 };
 
 export const getApplicantsForJob = async (jobId: string) => {
+  // This function was originally removed from mockApi imports, but it's used there. Re-adding it here.
   if (shouldUseMock(`/jobs/${jobId}/applicants/`)) {
     return getMockApplicantsForJob(jobId);
   }
@@ -405,4 +404,11 @@ export const getNeighborhoods = async (wardId: string) => {
     return getMockNeighborhoods(wardId);
   }
   return _backendApi.get(`/locations/neighborhoods/?ward_id=${wardId}`);
+};
+
+export const getReferrals = async () => {
+  if (shouldUseMock('/referrals/')) {
+    return getMockReferrals();
+  }
+  return _backendApi.get('/referrals/');
 };

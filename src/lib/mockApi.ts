@@ -252,6 +252,23 @@ const mockNeighborhoods = [
   { id: '4', name: 'New Nyali', ward_id: '3' },
 ];
 
+const mockReferrals: any[] = [
+  {
+    id: "ref1",
+    referrer: "user1",
+    referred_user: { id: "user3", full_name: "Alice Johnson", username: "designPro" },
+    is_successful: true,
+    created_at: "2023-08-01T10:00:00Z",
+  },
+  {
+    id: "ref2",
+    referrer: "user1",
+    referred_user: { id: "user4", full_name: "Bob White", username: "bobW" },
+    is_successful: false,
+    created_at: "2023-08-15T11:00:00Z",
+  },
+];
+
 // --- Mock API Functions ---
 
 export const getMockCommissionHistory = async () => {
@@ -559,4 +576,8 @@ export const getMockWards = async (subCountyId: string) => {
 export const getMockNeighborhoods = async (wardId: string) => {
     const filteredNeighborhoods = mockNeighborhoods.filter(n => n.ward_id === wardId);
     return Promise.resolve({ data: filteredNeighborhoods });
+};
+
+export const getMockReferrals = async () => {
+    return Promise.resolve({ data: mockReferrals });
 };

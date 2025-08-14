@@ -69,11 +69,11 @@ export default function HireFreelancersPage() {
 
       const response = await api.getUsers(`?${params.toString()}`);
       setFreelancers(response.data);
-    } catch (error) {
+    } catch (error: any) { // Explicitly type error as any for safer property access
       console.error("Failed to fetch freelancers:", error);
       toast({
         title: "Error",
-        description: "Failed to load freelancers. Please try again.",
+        description: error.response?.data?.detail || "Failed to load freelancers. Please try again.",
         variant: "destructive",
       });
       setFreelancers([]);

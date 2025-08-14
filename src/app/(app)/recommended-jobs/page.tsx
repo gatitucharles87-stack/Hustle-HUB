@@ -42,12 +42,7 @@ export default function RecommendedJobsPage() {
         return;
       }
       
-      // Ensure user profile is complete
-      if (!user.bio || !user.skills || user.skills.length === 0) { 
-          setError("Your profile is incomplete. Please add a bio and some skills to receive personalized job recommendations.");
-          setLoading(false);
-          return;
-      }
+      // Removed the profile completeness check to always show mock data
 
       const fetchJobsAndCategories = async () => {
         setLoading(true);
@@ -116,18 +111,12 @@ export default function RecommendedJobsPage() {
     
     // Display any errors that occurred during the process
     if (error) {
-      const isProfileIncomplete = error.includes("profile is incomplete");
       return (
         <Alert variant="destructive" className="bg-yellow-50 border-yellow-300 text-yellow-800">
           <AlertCircle className="h-5 w-5 text-yellow-600" />
-          <AlertTitle className="font-bold">{isProfileIncomplete ? "Complete Your Profile" : "An Error Occurred"}</AlertTitle>
+          <AlertTitle className="font-bold">An Error Occurred</AlertTitle>
           <AlertDescription>
             {error}
-            {isProfileIncomplete && (
-                <Button asChild className="mt-4">
-                    <Link href="/profile">Go to Profile</Link>
-                </Button>
-            )}
           </AlertDescription>
         </Alert>
       );

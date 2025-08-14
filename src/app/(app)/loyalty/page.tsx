@@ -1,34 +1,28 @@
-"use client";
-
-import { useState, useEffect, useCallback } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Gift, Star, Users, Share2, Copy } from "lucide-react";
-import {
-  Table,
-  TableHeader,
-  TableRow,
-  TableHead,
-  TableBody,
-  TableCell,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { useUser } from "@/hooks/use-user";
-import { useToast } from "@/hooks/use-toast";
+import { useState, useEffect, useCallback } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { BarChart, Users, DollarSign, Gift, LinkIcon, Zap, Star } from 'lucide-react';
+import { useUser } from '@/hooks/use-user';
+import { useToast } from '@/hooks/use-toast';
 import * as api from "@/lib/api";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge'; // Added import for Badge
 
 interface LoyaltyLog {
     id: string;
-    source: string; // e.g., 'referral', 'job_completion'
     points: number;
+    source: string;
     created_at: string;
 }
 
 interface Referral {
     id: string;
-    referred_user: {
+    referrer: string; // User ID of the referrer
+    referred_user: { // User object of the referred user
+        id: string;
         full_name: string;
+        username: string;
     };
     is_successful: boolean;
     created_at: string;
@@ -45,19 +39,22 @@ export default function LoyaltyPage() {
         if (!user) return;
         setLoadingData(true);
         try {
-            // TODO: The /referrals/ endpoint is not yet available in the api.ts file.
-            // const [loyaltyResponse, referralsResponse] = await Promise.all([
-            //     api.getLoyaltyPoints(),
-            //     api.getReferrals()
-            // ]);
-            const loyaltyResponse = await api.getLoyaltyPoints();
-            setLoyaltyHistory(loyaltyResponse.data);
-            // setReferrals(referralsResponse.data);
-        } catch (error) {
+            const [loyaltyResponse, referralsResponse] = await Promise.all([
+                api.getLoyaltyPoints(), // Use specific API function
+                api.getReferrals() // Use specific API function (assuming it exists or is added)
+            ]);
+
+            // Safely access data, assuming mock functions might return arrays directly or { data: [...]} or {data: {...}}
+            const loyaltyData = loyaltyResponse.data;
+            const referralData = referralsResponse.data;
+
+            setLoyaltyHistory(loyaltyData);
+            setReferrals(referralData);
+        } catch (error: any) {
             console.error("Failed to fetch loyalty data:", error);
             toast({
                 title: "Error",
-                description: "Failed to load loyalty program data.",
+                description: error.response?.data?.detail || "Failed to load loyalty program data.",
                 variant: "destructive",
             });
         } finally {
@@ -81,111 +78,117 @@ export default function LoyaltyPage() {
         toast({ title: "Copied!", description: "Referral link copied to clipboard." });
     };
 
-    const handleShare = () => {
-        if (navigator.share) {
-            navigator.share({
-                title: 'Join me on HustleHub!',
-                text: `I'm inviting you to join HustleHub, a platform for freelancers and employers. Sign up using my link:`,
-                url: referralLink,
-            }).catch(error => console.log('Error sharing:', error));
-        } else {
-            // Fallback for browsers that don't support Web Share API
-            handleCopy();
-            toast({ title: "Share this link", description: "Your referral link has been copied to the clipboard. Share it with your friends!" });
-        }
-    };
-    
     if (userLoading || loadingData) {
         return (
-            <div className="flex flex-col gap-8">
-                <Card>
-                    <CardHeader>
-                        <Skeleton className="h-8 w-1/3 mb-2" />
-                        <Skeleton className="h-4 w-2/3" />
-                    </CardHeader>
-                    <CardContent className="space-y-8">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <Skeleton className="h-32 w-full" />
-                            <Skeleton className="h-32 w-full" />
-                        </div>
-                        <Skeleton className="h-12 w-full" />
-                        <Skeleton className="h-48 w-full" />
-                    </CardContent>
-                </Card>
+            <div className="flex flex-col gap-6 p-4 md:p-6">
+                <Skeleton className="h-24 w-full" />
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {Array.from({ length: 3 }).map((_, i) => (
+                        <Card key={i} className="h-full">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <Skeleton className="h-6 w-1/2" />
+                                <Skeleton className="h-4 w-4" />
+                            </CardHeader>
+                            <CardContent>
+                                <Skeleton className="h-8 w-16" />
+                                <Skeleton className="h-4 w-3/4 mt-2" />
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+                <Skeleton className="h-48 w-full" />
+                <Skeleton className="h-32 w-full" />
             </div>
         );
     }
-    
-  return (
-    <div className="flex flex-col gap-8">
-      <Card>
-        <CardHeader>
-          <CardTitle className="font-headline text-2xl flex items-center gap-2"><Gift /> Loyalty Program</CardTitle>
-          <CardDescription>
-            Earn loyalty points for referrals and platform activity.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Card className="bg-muted/50">
-                    <CardHeader>
-                        <CardTitle className="text-lg flex items-center gap-2"><Star /> Your Loyalty Points</CardTitle>
+
+    return (
+        <div className="container mx-auto py-8">
+            <h1 className="text-3xl font-bold mb-6">Your Loyalty & Referrals</h1>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Total Loyalty Points</CardTitle>
+                        <Gift className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <p className="text-3xl font-bold">{totalPoints}</p>
-                        <p className="text-sm text-muted-foreground">Available to redeem</p>
+                        <div className="text-2xl font-bold">{totalPoints}</div>
+                        <p className="text-xs text-muted-foreground">Points earned so far</p>
                     </CardContent>
                 </Card>
-                 <Card className="bg-muted/50">
-                    <CardHeader>
-                        <CardTitle className="text-lg flex items-center gap-2"><Users /> Successful Referrals</CardTitle>
+
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Successful Referrals</CardTitle>
+                        <Users className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <p className="text-3xl font-bold">{successfulReferrals}</p>
-                        <p className="text-sm text-muted-foreground">Friends who joined</p>
+                        <div className="text-2xl font-bold">{successfulReferrals}</div>
+                        <p className="text-xs text-muted-foreground">Friends who joined through your link</p>
                     </CardContent>
                 </Card>
-            </div>
-          
-            <div>
-              <h3 className="text-lg font-semibold mb-2">Your Unique Referral Link</h3>
-              <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-2 p-4 border rounded-lg bg-background">
-                <code className="flex-1 text-sm text-muted-foreground overflow-x-auto">
-                  {referralLink}
-                </code>
-                <div className="flex space-x-2">
-                  <Button variant="outline" size="sm" onClick={handleCopy}><Copy className="mr-2 h-4 w-4" /> Copy</Button>
-                  <Button variant="outline" size="sm" onClick={handleShare}><Share2 className="mr-2 h-4 w-4" /> Share</Button>
-                </div>
-              </div>
+
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Referral Commission</CardTitle>
+                        <DollarSign className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">5%</div>
+                        <p className="text-xs text-muted-foreground">On first job completion of referred users</p>
+                    </CardContent>
+                </Card>
             </div>
 
-            <div>
-                 <h3 className="text-lg font-semibold mb-2">Loyalty History</h3>
-                 <Card>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                            <TableHead>Activity</TableHead>
-                            <TableHead>Date</TableHead>
-                            <TableHead className="text-right">Points Earned</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {loyaltyHistory.map((item, index) => (
-                                <TableRow key={index}>
-                                    <TableCell className="font-medium capitalize">{item.source.replace(/_/g, ' ')}</TableCell>
-                                    <TableCell>{new Date(item.created_at).toLocaleDateString()}</TableCell>
-                                    <TableCell className="text-right font-medium">{item.points > 0 ? `+${item.points}`: '-'}</TableCell>
-                                </TableRow>
+            <Card className="mb-8">
+                <CardHeader>
+                    <CardTitle>Share Your Referral Link</CardTitle>
+                    <CardDescription>Invite friends and earn rewards!</CardDescription>
+                </CardHeader>
+                <CardContent className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                    <div className="relative flex-grow w-full">
+                        <Input
+                            readOnly
+                            value={referralLink}
+                            className="pr-10"
+                        />
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="absolute right-0 top-1/2 -translate-y-1/2 h-full rounded-l-none"
+                            onClick={handleCopy}
+                        >
+                            <LinkIcon className="h-4 w-4" />
+                        </Button>
+                    </div>
+                    <Button onClick={handleCopy} className="w-full sm:w-auto">Copy Link</Button>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Loyalty Points History</CardTitle>
+                    <CardDescription>A log of all your earned and spent loyalty points.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    {loyaltyHistory.length === 0 ? (
+                        <p className="text-center text-muted-foreground py-4">No loyalty point history yet.</p>
+                    ) : (
+                        <div className="space-y-3">
+                            {loyaltyHistory.map((log) => (
+                                <div key={log.id} className="flex justify-between items-center p-3 bg-muted/50 rounded-md">
+                                    <div>
+                                        <p className="font-medium">{log.source}</p>
+                                        <p className="text-xs text-muted-foreground">{new Date(log.created_at).toLocaleDateString()}</p>
+                                    </div>
+                                    <Badge className="text-lg font-semibold">+{log.points}</Badge>
+                                </div>
                             ))}
-                        </TableBody>
-                    </Table>
-                 </Card>
-            </div>
-
-        </CardContent>
-      </Card>
-    </div>
-  );
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+        </div>
+    );
 }
