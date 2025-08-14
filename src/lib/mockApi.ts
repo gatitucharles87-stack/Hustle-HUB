@@ -57,10 +57,13 @@ const mockJobs: any[] = [
     budget: "2000-3000",
     job_type: "Part-time",
     location: "Remote",
-    category: "Web Development",
+    category: { id: "cat1", name: "Web Development" }, // Changed to object
     employer: { id: "user2", username: "employerUser", profile_picture: "/placeholder-avatar.jpg" },
     posted_date: "2023-10-26T10:00:00Z",
     applicants: [],
+    tags: ["React", "JavaScript", "Web Development"], // Added tags
+    matched_skills: ["React", "JavaScript"], // Added matched_skills
+    deadline: "2023-11-30T23:59:59Z", // Added deadline
   },
   {
     id: "job2",
@@ -69,10 +72,13 @@ const mockJobs: any[] = [
     budget: "1500-2500",
     job_type: "Freelance",
     location: "New York, NY",
-    category: "Design",
+    category: { id: "cat3", name: "Design" }, // Changed to object
     employer: { id: "user2", username: "employerUser", profile_picture: "/placeholder-avatar.jpg" },
     posted_date: "2023-10-25T14:30:00Z",
     applicants: [],
+    tags: ["UI/UX Design", "Figma", "Prototyping"], // Added tags
+    matched_skills: ["UI/UX Design", "Figma"], // Added matched_skills
+    deadline: "2023-12-15T23:59:59Z", // Added deadline
   },
 ];
 
@@ -85,6 +91,7 @@ const mockSkillBarterPosts: any[] = [
     posted_date: "2023-10-20T09:00:00Z",
     status: "active",
     offers: [],
+    deadline: "2023-11-25T23:59:59Z", // Added deadline
   },
   {
     id: "barter2",
@@ -94,6 +101,7 @@ const mockSkillBarterPosts: any[] = [
     posted_date: "2023-10-18T16:00:00Z",
     status: "active",
     offers: [],
+    deadline: "2023-12-01T23:59:59Z", // Added deadline
   },
 ];
 
@@ -208,12 +216,37 @@ const mockMyPosts: any[] = [
 const mockMyApplications: any[] = [
   {
     id: "myapp1",
-    postId: "barter2",
-    postTitle: "Website Review for English Tutoring",
+    job: {
+      id: "job1",
+      title: "Frontend Developer Needed",
+      category: { id: "cat1", name: "Web Development" },
+      job_type: "Part-time",
+      location: "Remote",
+      tags: ["React", "JavaScript"],
+      description: "Looking for a skilled React developer for a 3-month project.",
+      deadline: "2023-11-30T23:59:59Z",
+      employer: { id: "user2", name: "Jane Smith" }, // Added employer name
+    },
     applicant: { id: "user1", username: "freelancerUser", profile_picture: "/placeholder-avatar.jpg" },
-    status: "pending",
-    message: "I can provide a thorough website review.",
+    status: "Accepted", // Changed status for testing upcoming gigs
     applied_date: "2023-10-21T10:00:00Z",
+  },
+  {
+    id: "myapp2",
+    job: {
+      id: "job2",
+      title: "UI/UX Designer",
+      category: { id: "cat3", name: "Design" },
+      job_type: "Freelance",
+      location: "New York, NY",
+      tags: ["UI/UX Design", "Figma"],
+      description: "Seeking a creative UI/UX designer to revamp our mobile app.",
+      deadline: "2023-12-15T23:59:59Z",
+      employer: { id: "user2", name: "Jane Smith" },
+    },
+    applicant: { id: "user1", username: "freelancerUser", profile_picture: "/placeholder-avatar.jpg" },
+    status: "Pending",
+    applied_date: "2023-10-25T14:00:00Z",
   },
 ];
 
@@ -283,8 +316,40 @@ export const getMockJobCategories = async () => {
   return Promise.resolve({ data: mockJobCategories });
 };
 
-export const getMockJobs = async () => {
-  return Promise.resolve({ data: mockJobs });
+export const getMockJobs = async (params?: any) => {
+  let filteredJobs = [...mockJobs];
+
+  if (params && params.params) {
+    const { search, category, county, subCounty, area } = params.params;
+
+    if (search) {
+      filteredJobs = filteredJobs.filter(
+        (job) =>
+          job.title.toLowerCase().includes(search.toLowerCase()) ||
+          job.description.toLowerCase().includes(search.toLowerCase()) ||
+          job.tags.some((tag: string) =>
+            tag.toLowerCase().includes(search.toLowerCase())
+          )
+      );
+    }
+
+    if (category) {
+      filteredJobs = filteredJobs.filter((job) => job.category.id === category);
+    }
+
+    // Note: Mock API doesn't fully support location filtering based on hierarchical data
+    // For now, we'll just filter by a broad "location" string if specific location fields are provided.
+    if (county) {
+      filteredJobs = filteredJobs.filter((job) => job.location.toLowerCase().includes(county.toLowerCase()));
+    }
+    if (subCounty) {
+      filteredJobs = filteredJobs.filter((job) => job.location.toLowerCase().includes(subCounty.toLowerCase()));
+    }
+    if (area) {
+      filteredJobs = filteredJobs.filter((job) => job.location.toLowerCase().includes(area.toLowerCase()));
+    }
+  }
+  return Promise.resolve({ data: filteredJobs });
 };
 
 export const getMockJobById = async (id: string) => {
@@ -483,13 +548,22 @@ export const getMockMyPosts = async (userId: string) => {
 };
 
 export const getMockMyApplications = async (userId: string) => {
-  const userApplications = mockMyApplications.filter(app => app.applicant.id === userId);
-  return Promise.resolve({ data: userApplications });
+  // In a real scenario, you'd filter applications by the actual userId
+  // For mock purposes, we'll return all mock applications if a userId is provided (assuming they belong to 'user1')
+  // or filter based on a specific mock user.
+  if (userId) {
+    return Promise.resolve({ data: mockMyApplications.filter(app => app.applicant.id === userId) });
+  }
+  return Promise.resolve({ data: [] }); // Or some default if no user is provided
 };
 
 export const getMockEmployerApplications = async (employerId: string) => {
-  const applications = mockEmployerApplications.filter(app => app.jobId === 'job1'); // Mocking for job1
-  return Promise.resolve({ data: applications });
+  // In a real scenario, you'd filter applications by the actual employerId
+  // For mock purposes, we'll return all mock employer applications (assuming they belong to 'user2')
+  if (employerId) {
+    return Promise.resolve({ data: mockEmployerApplications.filter(app => app.job.employer.id === employerId) });
+  }
+  return Promise.resolve({ data: [] });
 };
 
 export const acceptMockOffer = async (offerId: string) => {

@@ -18,7 +18,7 @@ interface BarterPost {
     id: string;
     username: string;
     full_name: string;
-    profile_picture_url: string;
+    profile_picture: string; // Changed from profile_picture_url
   };
   offers_description: string;
   wants_description: string;
@@ -107,7 +107,7 @@ export default function SkillBarterPage() {
                 <Card key={listing.id} className="flex flex-col">
                   <CardHeader className="flex flex-row items-center gap-4">
                       <Avatar>
-                          <AvatarImage src={listing.user.profile_picture_url} alt={listing.user.full_name} />
+                          <AvatarImage src={listing.user.profile_picture} alt={listing.user.full_name} />
                           <AvatarFallback>{listing.user.full_name.charAt(0)}</AvatarFallback>
                       </Avatar>
                       <CardTitle className="text-lg">{listing.user.full_name}</CardTitle>

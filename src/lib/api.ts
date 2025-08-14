@@ -36,7 +36,7 @@ import {
   getMockWards,
   getMockNeighborhoods,
   getMockReferrals,
-  getMockApplicantsForJob // Ensure this is imported if still used in the mockApi file
+  getMockApplicantsForJob
 } from "./mockApi";
 
 const _backendApi = axios.create({
@@ -136,7 +136,7 @@ _backendApi.interceptors.response.use(
 
 const integratedPaths = [
   "/token/",
-  "/users/me/", // Add this to integratedPaths
+  "/users/me/",
   "/users/password/reset/",
   "/users/set_password/",
   "/users/",
@@ -144,7 +144,7 @@ const integratedPaths = [
 
 const shouldUseMock = (url: string) => {
   const isIntegrated = integratedPaths.some(path => url.startsWith(path));
-  return !isIntegrated; // Revert to original logic: use mock if NOT integrated
+  return !isIntegrated; 
 };
 
 export const loginUser = async (credentials: any) => {
@@ -178,7 +178,7 @@ export const getJobCategories = async () => {
 
 export const getJobs = async (params: any = {}) => {
   if (shouldUseMock("/jobs/")) {
-    return getMockJobs();
+    return getMockJobs(params); // Pass params to mock function
   }
   return _backendApi.get("/jobs/", { params });
 };
@@ -275,22 +275,18 @@ export const getUserById = async (id: string) => {
 };
 
 export const getUserProfile = async () => {
-  // This function will now hit the backend first because "/users/me/" is in integratedPaths
   return _backendApi.get("/users/me/");
 };
 
 export const updateUserProfile = async (profileData: any) => {
-  // This function will now hit the backend first because "/users/me/" is in integratedPaths
   return _backendApi.patch("/users/me/", profileData);
 };
 
 export const getDashboardStats = async (userType: 'freelancer' | 'employer') => {
-  // Always hit the backend for dashboard stats
   return _backendApi.get(`/dashboard-stats/?user_type=${userType}`);
 };
 
 export const getApplicantsForJob = async (jobId: string) => {
-  // This function was originally removed from mockApi imports, but it's used there. Re-adding it here.
   if (shouldUseMock(`/jobs/${jobId}/applicants/`)) {
     return getMockApplicantsForJob(jobId);
   }
@@ -298,7 +294,6 @@ export const getApplicantsForJob = async (jobId: string) => {
 };
 
 export const generateJobPostAI = async (prompt: string) => {
-  // This function always uses the mock AI to generate content
   return generateMockJobPostAI(prompt);
 };
 
@@ -324,10 +319,10 @@ export const getMyPosts = async (userId: string) => {
 };
 
 export const getMyApplications = async (userId: string) => {
-  if (shouldUseMock(`/skill-barter-applications/my-applications/?user_id=${userId}`)) {
+  if (shouldUseMock(`/job-applications/my-applications/?user_id=${userId}`)) {
     return getMockMyApplications(userId);
   }
-  return _backendApi.get(`/skill-barter-applications/my-applications/`);
+  return _backendApi.get(`/job-applications/my-applications/`);
 };
 
 export const getEmployerApplications = async (employerId: string) => {
