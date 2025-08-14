@@ -35,8 +35,6 @@ export function BarterPostDialog({ children, onPostCreated }: BarterPostDialogPr
   // State for AI generated content display (re-introduced)
   const [generatedTitle, setGeneratedTitle] = useState("");
   const [generatedDescription, setGeneratedDescription] = useState("");
-  // const [generatedSkillsOffered, setGeneratedSkillsOffered] = useState("");
-  // const [generatedSkillsWanted, setGeneratedSkillsWanted] = useState("");
   
   const { toast } = useToast();
 
@@ -45,6 +43,8 @@ export function BarterPostDialog({ children, onPostCreated }: BarterPostDialogPr
     const input = {
       skillsToOffer: skillsOffered || '',
       skillsToReceive: skillsWanted || '',
+      currentTitle: title || '',
+      currentDescription: description || '',
     };
 
     setIsAiLoading(true);
@@ -54,8 +54,6 @@ export function BarterPostDialog({ children, onPostCreated }: BarterPostDialogPr
       // Populate generated content for display
       setGeneratedTitle(aiData.title || "");
       setGeneratedDescription(aiData.description || "");
-      // setGeneratedSkillsOffered(aiData.skills_offered ? (Array.isArray(aiData.skills_offered) ? aiData.skills_offered.join(', ') : aiData.skills_offered) : "");
-      // setGeneratedSkillsWanted(aiData.skills_wanted ? (Array.isArray(aiData.skills_wanted) ? aiData.skills_wanted.join(', ') : aiData.skills_wanted) : "");
 
       toast({
         title: "AI Generated Content",
@@ -105,8 +103,6 @@ export function BarterPostDialog({ children, onPostCreated }: BarterPostDialogPr
         setSkillsWanted("");
         setGeneratedTitle("");
         setGeneratedDescription("");
-        // setGeneratedSkillsOffered("");
-        // setGeneratedSkillsWanted("");
       } else {
         toast({
           title: "Failed to Create Post",
@@ -228,32 +224,13 @@ export function BarterPostDialog({ children, onPostCreated }: BarterPostDialogPr
                   className="bg-muted/50"
                 />
               </div>
-              {/* <div className="grid gap-2">
-                <Label htmlFor="generated-skills-offered">Suggested Skills You Offer</Label>
-                <Input
-                  id="generated-skills-offered"
-                  value={generatedSkillsOffered}
-                  readOnly
-                  className="bg-muted/50"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="generated-skills-wanted">Suggested Skills You Want</Label>
-                <Input
-                  id="generated-skills-wanted"
-                  value={generatedSkillsWanted}
-                  readOnly
-                  className="bg-muted/50"
-                />
-              </div> */}
               <div className="grid gap-2">
                 <Label htmlFor="generated-description">Suggested Description</Label>
                 <Textarea
                   id="generated-description"
                   value={generatedDescription}
                   readOnly
-                  rows={6}
-                  className="bg-muted/50 resize-none"
+                  className="bg-muted/50 resize-y min-h-[150px]"
                 />
               </div>
             </div>
