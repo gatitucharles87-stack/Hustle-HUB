@@ -60,10 +60,18 @@ export default function MyGigsPage() {
   const { toast } = useToast();
   const { user, loading: userLoading } = useUser();
 
+  console.log("MyGigsPage Render - userLoading:", userLoading, "user:", user);
+  console.log("MyGigsPage Render - loadingApplications:", loadingApplications, "loadingListings:", loadingListings, "loadingGigs:", loadingGigs);
+
   const fetchData = useCallback(async () => {
-    if (userLoading) return;
+    console.log("fetchData called. userLoading:", userLoading, "user:", user);
+    if (userLoading) {
+        console.log("fetchData: user is still loading, returning.");
+        return;
+    }
 
     if (!user) {
+      console.log("fetchData: No user found, setting all loading to false.");
       toast({
         title: "Authentication Required",
         description: "Please log in to view your gigs.",
@@ -76,9 +84,12 @@ export default function MyGigsPage() {
     }
 
     if (user.is_freelancer) {
+      console.log("fetchData: User is freelancer. Fetching applications for user ID:", user.id);
       setLoadingApplications(true);
+      setLoadingGigs(true); // Ensure gigs loading is true when applications are fetched
       try {
-        const response: ApiResponse<JobApplication[]> = await api.getMyApplications(user.id) as ApiResponse<JobApplication[]>; // Corrected to use named export
+        const response: ApiResponse<JobApplication[]> = await api.getMyApplications(user.id) as ApiResponse<JobApplication[]>;
+        console.log("fetchData: Fetched job applications successfully.", response.data);
         const applications = response.data;
         setAppliedJobs(applications);
 
@@ -93,20 +104,24 @@ export default function MyGigsPage() {
           setUpcomingGigs(gigs);
 
         } catch (error) {
-          console.error("Failed to fetch job applications (mock)", error);
+          console.error("fetchData: Failed to fetch job applications:", error);
           toast({
             title: "Error",
             description: "Failed to load job applications. Please try again.",
             variant: "destructive",
           });
         } finally {
+          console.log("fetchData: Finished fetching applications, setting loadingApplications to false.");
           setLoadingApplications(false);
           setLoadingGigs(false);
         }
       } else if (user.is_employer) {
+        console.log("fetchData: User is employer. Fetching job listings for user ID:", user.id);
         setLoadingListings(true);
+        setLoadingGigs(true); // Ensure gigs loading is true when listings are fetched
         try {
-          const response: ApiResponse<Job[]> = await api.getJobs() as ApiResponse<Job[]>; // Corrected to use named export and get all jobs for employer to filter
+          const response: ApiResponse<Job[]> = await api.getJobs() as ApiResponse<Job[]>;
+          console.log("fetchData: Fetched all jobs, now filtering for employer.", response.data);
           const listings = response.data.filter(job => job.employer?.id === user.id); // Assuming job.employer.id exists for filtering
           setMyListings(listings);
 
@@ -121,13 +136,14 @@ export default function MyGigsPage() {
           setUpcomingGigs(gigs);
 
         } catch (error) {
-          console.error("Failed to fetch job listings (mock)", error);
+          console.error("fetchData: Failed to fetch job listings:", error);
           toast({
             title: "Error",
             description: "Failed to load job listings. Please try again.",
             variant: "destructive",
           });
         } finally {
+          console.log("fetchData: Finished fetching listings, setting loadingListings to false.");
           setLoadingListings(false);
           setLoadingGigs(false);
         }
@@ -135,10 +151,12 @@ export default function MyGigsPage() {
     }, [user, userLoading, toast]);
 
   useEffect(() => {
+    console.log("useEffect in MyGigsPage triggered.");
     fetchData();
   }, [fetchData]);
 
   const isLoading = userLoading || (user?.is_freelancer ? loadingApplications : loadingListings);
+  console.log("MyGigsPage Render - final isLoading state:", isLoading);
 
   return (
     <div className="flex flex-col gap-8">
