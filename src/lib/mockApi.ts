@@ -87,7 +87,7 @@ const mockSkillBarterPosts: any[] = [
     id: "barter1",
     title: "Learn Python for Graphic Design Services",
     description: "I can teach you Python programming in exchange for graphic design work for my portfolio.",
-    author: { id: "user1", username: "freelancerUser", profile_picture: "/placeholder-avatar.jpg" },
+    user: { id: "user1", username: "freelancerUser", full_name: "John Doe", profile_picture: "/placeholder-avatar.jpg" }, // Changed author to user, added full_name
     posted_date: "2023-10-20T09:00:00Z",
     status: "active",
     offers: [],
@@ -97,7 +97,7 @@ const mockSkillBarterPosts: any[] = [
     id: "barter2",
     title: "Website Review for English Tutoring",
     description: "I need someone to review my personal website and provide feedback. In return, I can offer English tutoring sessions.",
-    author: { id: "user2", username: "employerUser", profile_picture: "/placeholder-avatar.jpg" },
+    user: { id: "user2", username: "employerUser", full_name: "Jane Smith", profile_picture: "/placeholder-avatar.jpg" }, // Changed author to user, added full_name
     posted_date: "2023-10-18T16:00:00Z",
     status: "active",
     offers: [],
