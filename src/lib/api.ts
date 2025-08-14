@@ -135,7 +135,7 @@ _backendApi.interceptors.response.use(
 
 const integratedPaths = [
   "/token/",
-  "/users/me/",
+  "/users/me/", // Add this to integratedPaths
   "/users/password/reset/",
   "/users/set_password/",
   "/users/",
@@ -144,7 +144,7 @@ const integratedPaths = [
 
 const shouldUseMock = (url: string) => {
   const isIntegrated = integratedPaths.some(path => url.startsWith(path));
-  return !isIntegrated;
+  return !isIntegrated; // Revert to original logic: use mock if NOT integrated
 };
 
 export const loginUser = async (credentials: any) => {
@@ -275,10 +275,12 @@ export const getUserById = async (id: string) => {
 };
 
 export const getUserProfile = async () => {
+  // This function will now hit the backend first because "/users/me/" is in integratedPaths
   return _backendApi.get("/users/me/");
 };
 
 export const updateUserProfile = async (profileData: any) => {
+  // This function will now hit the backend first because "/users/me/" is in integratedPaths
   return _backendApi.patch("/users/me/", profileData);
 };
 
